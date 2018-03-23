@@ -46,6 +46,12 @@ suite
     .add("FIND: find my way dynamic", function() {
         findMyWay.find("GET","/this/is/dynamic/with/123rest");
     })
+    .add("FIND: Fast track dynamic with query param", function() {
+        rasta.find("GET","/this/is/dynamic/with/123rest?ignore=me");
+    })
+    .add("FIND: find my way dynamic with query param", function() {
+        findMyWay.find("GET","/this/is/dynamic/with/123rest?ignore=me");
+    })
 
     .add("LOOKUP: Fast track static", function() {
         var req = {
@@ -72,6 +78,20 @@ suite
         var req = {
             method: "GET",
             url: "/this/is/dynamic/with/123rest"
+        }
+        findMyWay.lookup(req);
+    })
+    .add("LOOKUP: Fast track dynamic with query param", function() {
+        var req = {
+            method: "GET",
+            url: "/this/is/dynamic/with/123rest?ignore=me"
+        }
+        rasta.lookup(req);
+    })
+    .add("LOOKUP: find my way dynamic with query param", function() {
+        var req = {
+            method: "GET",
+            url: "/this/is/dynamic/with/123rest?ignore=me"
         }
         findMyWay.lookup(req);
     })
