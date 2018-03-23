@@ -20,7 +20,7 @@ const router = require('anumargak')({
 })
 anumargak.on("GET", "/this/is/static", handler);
 anumargak.on("GET", "/this/is/:dynamic", handler);
-anumargak.on("GET", "/this/is/:dynamic", handler);//it will overrite old same mapping
+anumargak.on("GET", "/this/is/:dynamic", handler);//it will overwrite old mapping
 anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", handler);
 //Eg: params = { dynamic : val, pattern: 123}
 anumargak.on("GET", "/this/is/:dynamic/with/:two-:params", handler);//use - to separate multiple parameters
@@ -60,7 +60,7 @@ server.listen(3000, err => {
 
 ```
 ## Benchmark
-|method | url type  | anumargak (रास्ता) | find-my-way|
+|method | url type  | anumargak (अनुमार्गक) | find-my-way|
 |------|------|------|------|
 |find | static | 32111671.23 | 2939447.287|
 |find | dynamic | 2767738.28 | 1220416.079|
@@ -69,6 +69,7 @@ server.listen(3000, err => {
 |lookup | dynamic | 2034493.062 | 1023664.399|
 |lookup | with query param | 1414253.913	894684.0352|
 
-Above benchmark has been taken on 16gb RAM ubuntu machine with node v9.5.0 and npm v5.6.0
+*Note* : Above benchmark has been taken on 16gb RAM ubuntu machine with node v9.5.0 and npm v5.6.0
 
 
+![chart](./static/chart.png)

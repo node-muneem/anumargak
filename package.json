@@ -2,7 +2,7 @@
   "name": "anumargak",
   "version": "1.0.0",
   "description": "Amazing fast HTTP router",
-  "main": "index.js",
+  "main": "./src/letsRoute.js",
   "scripts": {
     "test": "nyc jasmine tests/*test.js",
     "postinstall": "node tasks/postinstall.js",
