@@ -3,6 +3,8 @@ var { getAllMatches, urlSlice} = require("./util");
 
 var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 
+var methods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT"];
+
 /**
  * Adds routes against the given method and URL
  * @param {string} method 
@@ -10,6 +12,19 @@ var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
  * @param {function} fn 
  */
 Rasta.prototype.on = function(method,url,fn){
+    if(typeof method === "string"){
+        this._on(method,url,fn);
+    }else if(Array.isArray(method)){
+        for(var i=0;i<method.length;i++){
+            this._on(method[i],url,fn);
+        }
+    }else{
+        throw Error("Invalid method argument. String or array is expected.");
+    }
+}
+
+Rasta.prototype._on = function(method,url,fn){
+    if(methods.indexOf(method) === -1) throw Error("Invalid method type "+method);
     var matches = getAllMatches(url,paramRegexStr);
     if(matches.length > 0){
         var params = [];
@@ -23,7 +38,6 @@ Rasta.prototype.on = function(method,url,fn){
                 url = url.replace(matches[i][0],"([^\\/]+)");
             }
         }
-        //var regex = new RegExp(url);
         var regex = new RegExp("^"+url+"$");
         this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params};
     }else{
@@ -80,7 +94,8 @@ function Rasta(options){
         DELETE : {},
         OPTIONS : {},
         PATCH : {},
-        TRACK : {}
+        TRACK : {},
+        CONNECT : {}
     }
 
     this.staticRoutes = {
@@ -91,7 +106,8 @@ function Rasta(options){
         DELETE : {},
         OPTIONS : {},
         PATCH : {},
-        TRACK : {}
+        TRACK : {},
+        CONNECT : {}
     }
 
     if(options && options.defaultRoute){

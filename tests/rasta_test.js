@@ -1,7 +1,7 @@
 var Rasta = require("./../src/letsRoute");
 
 describe("Fast Track", function() {
-    it("should set static url", function() {
+    it("should find static url", function() {
         var rasta = Rasta();
 
         rasta.on("GET", "/this/is/static", () => 30);
@@ -14,11 +14,24 @@ describe("Fast Track", function() {
         expect(rasta.find("HEAD","/this/is/static")()).toEqual(30);
     });
 
+    it("should lookup static url", function(done) {
+        var rasta = Rasta();
+
+        rasta.on("GET", "/this/is/static", (req,res) => {
+            done();
+        });
+
+        rasta.lookup({
+            method: "GET",
+            url: "/this/is/static"}
+        );
+    });
+
     it("should set dynamic url", function() {
         var rasta = Rasta();
 
-        rasta.on("GET", "/this/is/:dynamic", () => 30)
-        rasta.on("HEAD", "/this/is/:dynamic", () => 30)
+        rasta.on("GET", "/this/is/:dynamic", () => 30);
+        rasta.on("HEAD", "/this/is/:dynamic", () => 30);
 
         /* expect(rasta.dynamicRoutes.GET["/this/is/([^\\/]+)"]()).toEqual(30);
         expect(rasta.dynamicRoutes.HEAD["/this/is/([^\\/]+)"]()).toEqual(30); */
@@ -159,7 +172,7 @@ describe("Fast Track", function() {
 
     it("should lookup correct function leaving query paramaters apart", function(done) {
         var rasta = Rasta();
-
+        
         rasta.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", 
             (req,res,params) => {
                 expect(params).toEqual({
@@ -169,19 +182,99 @@ describe("Fast Track", function() {
                 done();
             }
         );
-
+        
         var req = {
             method : "GET",
             url : "/this/is/dynamic/with/123rest?ignore=me"
         }
-
+        
         rasta.lookup(req) ;
-
+        
         var req = {
             method : "GET",
             url : "/this/is/dynamic/with/123rest#ignoreme"
         }
-
+        
         rasta.lookup(req) ;
     });
+
+    it("should support similar route path with different parameter", function() {
+        var rasta = Rasta();
+
+        rasta.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
+        rasta.on("GET", "/this/is/:dynamic/with/:pattern([a-z]+)", () => 50);
+
+        expect(rasta.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
+        expect(rasta.find("GET","/this/is/dynamic/with/string")() ).toEqual(50);
+    });
+
+    /* it("should support wild card ", function(done) {
+        var rasta = Rasta();
+        
+        rasta.on("GET", "/this/is/:dynamic/with/ * /anything/here?ignore=me", 
+            (req,res,params) => {
+                expect(params).toEqual({
+                    dynamic : "dynamic",
+                    "*" : "string"
+                });
+                done();
+        });
+        rasta.lookup({
+            url: "/this/is/dynamic/with/string",
+            method : "GET"
+        });
+    });  */
+
+    it("should set multiple methos is an array is passed", function() {
+        var rasta = Rasta();
+
+        rasta.on(["GET", "HEAD"], "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
+
+        expect(rasta.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
+        expect(rasta.find("HEAD","/this/is/dynamic/with/123")() ).toEqual(30);
+    });
+
+    it("should throw error on invalid argument type", function() {
+        var rasta = Rasta();
+
+        expect(() => {
+            rasta.on({ method: "GET"}, "/this/is/:dynamic/with/:pattern(\\d+)", () => {});
+        }).toThrowError("Invalid method argument. String or array is expected.");
+    });
+
+    it("should throw error on invalid method type", function() {
+        var rasta = Rasta();
+
+        expect(() => {
+            rasta.on("OTHER", "/this/is/:dynamic/with/:pattern(\\d+)", () => {});
+        }).toThrowError("Invalid method type OTHER");
+    });
+
+    it("should find default function when no rout matches", function() {
+        var rasta = Rasta({
+            defaultRoute : () => 50
+        });
+
+        rasta.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => {});
+        
+        expect(rasta.find("GET", "/this/is/not/registered")()).toEqual(50);
+
+    });
+
+    it("should look up default function when no rout matches", function(done) {
+        var rasta = Rasta({
+            defaultRoute : (req,res) => {
+                done();
+            }
+        });
+
+        rasta.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => {});
+        
+        rasta.lookup({
+            method : "GET", 
+            url: "/this/is/not/registered"
+        });
+
+    });
+
 });
