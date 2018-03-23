@@ -11,7 +11,7 @@ var methods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRAC
  * @param {string} url 
  * @param {function} fn 
  */
-Rasta.prototype.on = function(method,url,fn){
+Anumargak.prototype.on = function(method,url,fn){
     if(typeof method === "string"){
         this._on(method,url,fn);
     }else if(Array.isArray(method)){
@@ -23,7 +23,7 @@ Rasta.prototype.on = function(method,url,fn){
     }
 }
 
-Rasta.prototype._on = function(method,url,fn){
+Anumargak.prototype._on = function(method,url,fn){
     if(methods.indexOf(method) === -1) throw Error("Invalid method type "+method);
     var matches = getAllMatches(url,paramRegexStr);
     if(matches.length > 0){
@@ -45,7 +45,7 @@ Rasta.prototype._on = function(method,url,fn){
     }
 }
 
-Rasta.prototype.find = function(method,url){
+Anumargak.prototype.find = function(method,url){
     url = urlSlice(url);
     var fn = this.staticRoutes[method][url];
     if(fn) return fn;
@@ -60,7 +60,7 @@ Rasta.prototype.find = function(method,url){
 }
 
 
-Rasta.prototype.lookup = function(req,res){
+Anumargak.prototype.lookup = function(req,res){
     var method = req.method;
     var url = urlSlice(req.url);
 
@@ -83,8 +83,8 @@ Rasta.prototype.lookup = function(req,res){
     return this.defaultFn(req,res);
 }
 
-function Rasta(options){
-    if(!(this instanceof Rasta )) return new Rasta(options);
+function Anumargak(options){
+    if(!(this instanceof Anumargak )) return new Anumargak(options);
     
     this.dynamicRoutes = {
         GET : {},
@@ -115,4 +115,4 @@ function Rasta(options){
     }
 }
 
-module.exports = Rasta;
+module.exports = Anumargak;

@@ -10,7 +10,7 @@ const NC="\033[0m"; // No Color
 console.log(yellow+"              Donating to an open source project is more affordable than paying salary"+NC);
 
 console.log('');
-console.log('                         ' + stars + ' Thank you for using Rasta (रास्ता)! ' + stars);
+console.log('                         ' + stars + ' Thank you for using Anumargak (अनुमार्गक)! ' + stars);
 console.log('');
 console.log('                    Please consider donating to help us maintain this package');
 console.log('');
