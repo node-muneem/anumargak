@@ -1,12 +1,12 @@
 {
   "name": "anumargak",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Amazing fast HTTP router",
   "main": "./src/letsRoute.js",
   "scripts": {
-    "test": "nyc jasmine tests/*test.js",
+    "test": "jasmine tests/*test.js",
     "postinstall": "node tasks/postinstall.js",
-    "coverage": "nyc report --reporter=lcov"
+    "coverage": "npm run test; nyc report --reporter=lcov"
   },
   "author": "Amit Gupta (https://github.com/amitguptagwl)",
   "license": "MIT",

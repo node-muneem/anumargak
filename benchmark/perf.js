@@ -1,8 +1,12 @@
 const Benchmark = require("benchmark");
 const suite = new Benchmark.Suite("Fast routing");
 
-const anumargak = require("../src/letsRoute")();
-const findMyWay = require("find-my-way")();
+const anumargak = require("../src/letsRoute")({
+    ignoreTrailingSlash : true
+});
+const findMyWay = require("find-my-way")({
+    ignoreTrailingSlash : true
+});
 
 //Add routes to all routers
 anumargak.on("GET", "/this/is/static", () => 30);
@@ -27,11 +31,6 @@ findMyWay.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", () => 30);
 findMyWay.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
 findMyWay.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m", () => 50)
 
-var req = {
-    method: "GET",
-    url: "/this/is/static"
-}
-anumargak.lookup(req);
 
 suite
     .add("FIND: Fast track static", function() {

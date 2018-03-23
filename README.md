@@ -16,8 +16,9 @@ Fast HTTP Router
 
 ```js
 const router = require('anumargak')({
-  defaultRoute : defaultHandler;
-})
+  defaultRoute : defaultHandler,
+  ignoreTrailingSlash: true
+});
 anumargak.on("GET", "/this/is/static", handler);
 anumargak.on("GET", "/this/is/:dynamic", handler);
 anumargak.on("GET", "/this/is/:dynamic", handler);//it will overwrite old mapping

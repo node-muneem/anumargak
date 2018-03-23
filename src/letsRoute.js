@@ -37,11 +37,26 @@ Anumargak.prototype._on = function(method,url,fn){
             }else{
                 url = url.replace(matches[i][0],"([^\\/]+)");
             }
+            if(this.ignoreTrailingSlash){
+                if(url.endsWith("/")){
+                    url = url + "?";
+                }else{
+                    url = url + "/?";
+                }
+            }
         }
         var regex = new RegExp("^"+url+"$");
         this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params};
     }else{
         this.staticRoutes[method][url] = fn;
+        if(this.ignoreTrailingSlash){
+            if(url.endsWith("/")){
+                url = url.substr(0,url.length-1);
+            }else{
+                url = url + "/";
+            }
+            this.staticRoutes[method][url] = fn;
+        }
     }
 }
 
@@ -85,7 +100,6 @@ Anumargak.prototype.lookup = function(req,res){
 
 function Anumargak(options){
     if(!(this instanceof Anumargak )) return new Anumargak(options);
-    
     this.dynamicRoutes = {
         GET : {},
         HEAD : {},
@@ -110,8 +124,11 @@ function Anumargak(options){
         CONNECT : {}
     }
 
-    if(options && options.defaultRoute){
-        this.defaultFn = options.defaultRoute;
+    if(options){
+        if(options.defaultRoute){
+            this.defaultFn = options.defaultRoute;
+        }
+        this.ignoreTrailingSlash = options.ignoreTrailingSlash || false;
     }
 }
 

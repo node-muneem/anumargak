@@ -277,4 +277,33 @@ describe("Anumargak ", function() {
 
     });
 
+    it("should add additional static url when ignoreTrailingSlash is set to true", function() {
+        var anumargak = Anumargak({
+            ignoreTrailingSlash: true
+        });
+
+        anumargak.on("GET", "/this/is/static", () => 30);
+        anumargak.on("HEAD", "/this/is/static/", () => 50);
+        
+        expect(anumargak.find("GET","/this/is/static")() ).toEqual(30);
+        expect(anumargak.find("GET","/this/is/static/")() ).toEqual(30);
+        expect(anumargak.find("HEAD","/this/is/static")() ).toEqual(50);
+        expect(anumargak.find("HEAD","/this/is/static/")() ).toEqual(50);
+    });
+
+    it("should add additional dynamic url when ignoreTrailingSlash is set to true", function() {
+        var anumargak = Anumargak({
+            ignoreTrailingSlash: true
+        });
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
+        anumargak.on("HEAD", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 50);
+        
+        expect(anumargak.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic/with/123/")() ).toEqual(30);
+        expect(anumargak.find("HEAD","/this/is/dynamic/with/123")() ).toEqual(50);
+        expect(anumargak.find("HEAD","/this/is/dynamic/with/123/")() ).toEqual(50);
+        
+    });
+
 });
