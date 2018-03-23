@@ -25,6 +25,6 @@ console.log('');
 
 console.log('Try' + light_green +' Nimn (निम्न)' + NC + ' format. It can save bandwidth and reduce response size.');
 console.log('');
-console.log('Give us a \x1B[1m*\x1B[0m on '+ light_blue + 'https://github.com/NaturalIntelligence/rasta'+ NC +' and help us to grow');
+console.log('Give us a \x1B[1m*\x1B[0m on '+ light_blue + 'https://github.com/NaturalIntelligence/anumargak'+ NC +' and help us to grow');
 console.log('');
 process.exit(0);

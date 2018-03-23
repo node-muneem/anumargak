@@ -14,7 +14,13 @@
     "type": "git",
     "url": "https://github.com/NaturalIntelligence/anumargak"
   },
-  "keywords": ["route" ,"router", "http", "HTTP", "fast"],
+  "keywords": [
+    "route",
+    "router",
+    "http",
+    "HTTP",
+    "fast"
+  ],
   "devDependencies": {
     "benchmark": "^2.1.4",
     "find-my-way": "^1.11.1",
