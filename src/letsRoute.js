@@ -27,6 +27,7 @@ Anumargak.prototype._on = function(method,url,fn){
     if(methods.indexOf(method) === -1) throw Error("Invalid method type "+method);
     var matches = getAllMatches(url,paramRegexStr);
     if(matches.length > 0){
+        this.count +=1;
         var params = [];
         for(var i=0; i< matches.length; i++){
             var name = matches[i][1];
@@ -48,6 +49,7 @@ Anumargak.prototype._on = function(method,url,fn){
         var regex = new RegExp("^"+url+"$");
         this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params};
     }else{
+        this.count +=1;
         this.staticRoutes[method][url] = fn;
         if(this.ignoreTrailingSlash){
             if(url.endsWith("/")){
@@ -78,9 +80,14 @@ Anumargak.prototype.find = function(method,url){
 Anumargak.prototype.lookup = function(req,res){
     var method = req.method;
     var url = urlSlice(req.url);
+    
+    var result = this._lookup(url,method);
+    result.fn(req,res,result.params);
+}
 
+Anumargak.prototype._lookup = function(url,method){
     var fn = this.staticRoutes[method][url];
-    if(fn) return fn(req,res);
+    if(fn) return { fn : fn };
     else{
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for(var i = 0; i<urlRegex.length;i++){
@@ -91,15 +98,16 @@ Anumargak.prototype.lookup = function(req,res){
                 for(var m_i=1; m_i< matches.length; m_i++){
                     params[ route.params[m_i-1] ] = matches[m_i] ;
                 }
-                return this.dynamicRoutes[method][ urlRegex[i] ].fn (req,res,params);
+                return { fn: this.dynamicRoutes[method][ urlRegex[i] ].fn , params : params};
             }
         }
     }
-    return this.defaultFn(req,res);
+    return { fn : this.defaultFn };
 }
 
 function Anumargak(options){
     if(!(this instanceof Anumargak )) return new Anumargak(options);
+    this.count = 0;
     this.dynamicRoutes = {
         GET : {},
         HEAD : {},

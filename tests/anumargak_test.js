@@ -306,4 +306,15 @@ describe("Anumargak ", function() {
         
     });
 
+    it("should update count", function() {
+        var anumargak = Anumargak({
+            ignoreTrailingSlash: true
+        });
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
+        anumargak.on("HEAD", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 50);
+        
+        expect(anumargak.count ).toEqual(2);
+    });
+
 });
