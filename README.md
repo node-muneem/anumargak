@@ -22,6 +22,7 @@ const router = require('anumargak')({
   ignoreTrailingSlash: true
 });
 anumargak.on("GET", "/this/is/static", handler);
+anumargak.on(["POST","PUT"], "/this/is/static", handler);//supports array
 anumargak.on("GET", "/this/is/:dynamic", handler);
 anumargak.on("GET", "/this/is/:dynamic", handler);//it will overwrite old mapping
 anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", handler);
@@ -37,6 +38,8 @@ anumargak.find("GET","/this/is/static");//will return handler
 anumargak.find("GET","/this/is/dynamic/with/123?ignore=me");//ignore query parameters and hashtag part automatically
 
 anumargak.lookup(req,res) ;//will execute handler with req,res and params(for dynamic URLs) as method parameters
+
+console.log(anumargak.count); //Print number of unique routes added
 ```
 
 **wildcard**: I couldn't understand the need of wildcard, hence not implemented. Please raise the issue if it should be implemented.
