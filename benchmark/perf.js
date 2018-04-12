@@ -19,6 +19,7 @@ anumargak.on("GET", "/this/is/:dynamic/with/:two-:params", () => 30)
 anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", () => 30);
 anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
 anumargak.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m", () => 50)
+anumargak.on("GET", "/login/as/:role(admin|staff|user)/:type(baretoken|jtoken|auth2)", () => 60)
 
 findMyWay.on("GET", "/this/is/static", () => 30);
 findMyWay.on("HEAD", "/this/is/static", () => 30);
@@ -30,29 +31,38 @@ findMyWay.on("GET", "/this/is/:dynamic/with/:two-:params", () => 30)
 findMyWay.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", () => 30);
 findMyWay.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
 findMyWay.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m", () => 50)
+findMyWay.on("GET", "/login/as/:role(admin|staff|user)/:type(baretoken|jtoken|auth2)", () => 60)
 
+/* console.log(anumargak.find("GET","/login/as/user/auth2"));
+console.log(findMyWay.find("GET","/login/as/user/auth2").handler); */
 
 suite
-    .add("FIND: Fast track static", function() {
+    .add("FIND: Anumargak static", function() {
         anumargak.find("GET","/this/is/static");
     })
     .add("FIND: find my way static", function() {
         findMyWay.find("GET","/this/is/static");
     })
-    .add("FIND: Fast track dynamic", function() {
+    .add("FIND: Anumargak dynamic", function() {
         anumargak.find("GET","/this/is/dynamic/with/123rest");
     })
     .add("FIND: find my way dynamic", function() {
         findMyWay.find("GET","/this/is/dynamic/with/123rest");
     })
-    .add("FIND: Fast track dynamic with query param", function() {
+    .add("FIND: Anumargak dynamic with query param", function() {
         anumargak.find("GET","/this/is/dynamic/with/123rest?ignore=me");
     })
     .add("FIND: find my way dynamic with query param", function() {
         findMyWay.find("GET","/this/is/dynamic/with/123rest?ignore=me");
     })
+    .add("FIND: Anumargak enum", function() {
+        anumargak.find("GET","/login/as/user/auth2");
+    })
+    .add("FIND: find my way enum", function() {
+        findMyWay.find("GET","/login/as/user/auth2");
+    })
 
-    .add("LOOKUP: Fast track static", function() {
+    .add("LOOKUP: Anumargak static", function() {
         var req = {
             method: "GET",
             url: "/this/is/static"
@@ -66,7 +76,7 @@ suite
         }
         findMyWay.lookup(req);
     })
-    .add("LOOKUP: Fast track dynamic", function() {
+    .add("LOOKUP: Anumargak dynamic", function() {
         var req = {
             method: "GET",
             url: "/this/is/dynamic/with/123rest"
@@ -80,7 +90,7 @@ suite
         }
         findMyWay.lookup(req);
     })
-    .add("LOOKUP: Fast track dynamic with query param", function() {
+    .add("LOOKUP: Anumargak dynamic with query param", function() {
         var req = {
             method: "GET",
             url: "/this/is/dynamic/with/123rest?ignore=me"
@@ -91,6 +101,20 @@ suite
         var req = {
             method: "GET",
             url: "/this/is/dynamic/with/123rest?ignore=me"
+        }
+        findMyWay.lookup(req);
+    })
+    .add("LOOKUP: Anumargak enum", function() {
+        var req = {
+            method: "GET",
+            url: "/login/as/user/auth2"
+        }
+        anumargak.lookup(req);
+    })
+    .add("LOOKUP: find my way enum", function() {
+        var req = {
+            method: "GET",
+            url: "/login/as/user/auth2"
         }
         findMyWay.lookup(req);
     })
