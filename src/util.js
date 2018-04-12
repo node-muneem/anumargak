@@ -1,6 +1,10 @@
+exports.getFirstMatche = function(string, regex_str) {
+    var regex = new RegExp(regex_str);
+    return regex.exec(string);
+}
 
 exports.getAllMatches = function(string, regex_str) {
-    regex = new RegExp(regex_str,"g");
+    var regex = new RegExp(regex_str,"g");
     return exports.getAllRegexMatches(string,regex);
 }
 

@@ -1,9 +1,9 @@
 
-var { getAllMatches, urlSlice} = require("./util");
+var { getFirstMatche,getAllMatches, urlSlice} = require("./util");
 
-var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 
-var methods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT"];
+
+var httpMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT", "COPY", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
 
 /**
  * Adds routes against the given method and URL
@@ -12,6 +12,7 @@ var methods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRAC
  * @param {function} fn 
  */
 Anumargak.prototype.on = function(method,url,fn){
+    
     if(typeof method === "string"){
         this._on(method,url,fn);
     }else if(Array.isArray(method)){
@@ -24,15 +25,47 @@ Anumargak.prototype.on = function(method,url,fn){
 }
 
 Anumargak.prototype._on = function(method,url,fn){
-    if(methods.indexOf(method) === -1) throw Error("Invalid method type "+method);
+    if(httpMethods.indexOf(method) === -1) throw Error("Invalid method type "+method);
+    if(this.find(method,url)){
+        this.count --;
+    }
+    this.count +=1;
+    this.__on(method,url,fn);
+}
+
+var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
+var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
+
+Anumargak.prototype.__on = function(method,url,fn,params){
+    
+    var matches = getFirstMatche(url,enumRegexStr);
+    if(matches){
+        var name = matches[1];
+        var pattern = matches[3];
+
+        var arr = pattern.split("\|");
+        for(var i=0; i< arr.length; i++){
+            var newurl = url.replace(matches[0],arr[i]);    
+            if(params){
+                params = Object.assign({},params);
+                params[name] = arr[i];
+            }else{
+                params = {};
+                params[name] = arr[i];
+            }
+            this.__on(method,newurl,fn,params);
+        }
+        return;
+    }
+
     var matches = getAllMatches(url,paramRegexStr);
-    if(matches.length > 0){
-        this.count +=1;
-        var params = [];
+    if(matches.length > 0){//DYNAMIC
+        var paramsArr = [];
         for(var i=0; i< matches.length; i++){
             var name = matches[i][1];
             var pattern = matches[i][2];
-            params.push(name);
+
+            paramsArr.push(name);
             if(pattern){
                 url = url.replace(matches[i][0],pattern);
             }else{
@@ -47,25 +80,24 @@ Anumargak.prototype._on = function(method,url,fn){
             }
         }
         var regex = new RegExp("^"+url+"$");
-        this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params};
-    }else{
-        this.count +=1;
-        this.staticRoutes[method][url] = fn;
+        this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params || {}, paramsArr : paramsArr};
+    }else{//STATIC
+        this.staticRoutes[method][url] = { fn : fn, params: params };
         if(this.ignoreTrailingSlash){
             if(url.endsWith("/")){
                 url = url.substr(0,url.length-1);
             }else{
                 url = url + "/";
             }
-            this.staticRoutes[method][url] = fn;
+            this.staticRoutes[method][url] = { fn : fn, params: params };
         }
     }
 }
 
 Anumargak.prototype.find = function(method,url){
     url = urlSlice(url);
-    var fn = this.staticRoutes[method][url];
-    if(fn) return fn;
+    var result = this.staticRoutes[method][url];
+    if(result) return result.fn;
     else{
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for(var i = 0; i<urlRegex.length;i++){
@@ -86,17 +118,17 @@ Anumargak.prototype.lookup = function(req,res){
 }
 
 Anumargak.prototype._lookup = function(url,method){
-    var fn = this.staticRoutes[method][url];
-    if(fn) return { fn : fn };
+    var result = this.staticRoutes[method][url];
+    if(result) return { fn : result.fn, params: result.params };
     else{
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for(var i = 0; i<urlRegex.length;i++){
             var route = this.dynamicRoutes[method][ urlRegex[i] ];
             var matches = route.regex.exec(url);
-            var params = {};
+            var params = route.params;
             if(matches){
                 for(var m_i=1; m_i< matches.length; m_i++){
-                    params[ route.params[m_i-1] ] = matches[m_i] ;
+                    params[ route.paramsArr[m_i-1] ] = matches[m_i] ;
                 }
                 return { fn: this.dynamicRoutes[method][ urlRegex[i] ].fn , params : params};
             }

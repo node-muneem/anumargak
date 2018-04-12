@@ -7,8 +7,9 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/this/is/static", () => 30);
         anumargak.on("HEAD", "/this/is/static", () => 30);
 
-        /* expect(anumargak.staticRoutes.GET["/this/is/static"]()).toEqual(30);
-        expect(anumargak.staticRoutes.HEAD["/this/is/static"]()).toEqual(30); */
+        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
+        expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
+        expect(anumargak.count).toEqual(2);
 
         expect(anumargak.find("GET","/this/is/static")()).toEqual(30);
         expect(anumargak.find("HEAD","/this/is/static")()).toEqual(30);
@@ -33,8 +34,9 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/this/is/:dynamic", () => 30);
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30);
 
-        /* expect(anumargak.dynamicRoutes.GET["/this/is/([^\\/]+)"]()).toEqual(30);
-        expect(anumargak.dynamicRoutes.HEAD["/this/is/([^\\/]+)"]()).toEqual(30); */
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
+        expect(anumargak.count).toEqual(2);
 
         expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
         expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(30);
@@ -46,20 +48,22 @@ describe("Anumargak ", function() {
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30)
         anumargak.on("HEAD", "/this/is/:dynamic/2", () => 50)
         
-        /* expect(anumargak.dynamicRoutes.HEAD["/this/is/([^\\/]+)"]()).toEqual(30);
-        expect(anumargak.dynamicRoutes.HEAD["/this/is/([^\\/]+)/2"]()).toEqual(50); */
+        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(2);
+        expect(anumargak.count).toEqual(2);
 
         expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(30);
         expect(anumargak.find("HEAD","/this/is/dynamic/2")()).toEqual(50);
     });
 
+    //TODO: bug: count should not be increased when same route is ovewritten
     it("should overwrite  same route ", function() {
         var anumargak = Anumargak();
 
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30)
         anumargak.on("HEAD", "/this/is/:dynamic", () => 50)
 
-        /* expect(anumargak.dynamicRoutes.HEAD["/this/is/([^\\/]+)"]()).toEqual(50); */
+        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
+        expect(anumargak.count).toEqual(1);
 
         expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(50);
     });
@@ -69,7 +73,8 @@ describe("Anumargak ", function() {
 
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
 
-        /* expect(anumargak.dynamicRoutes.GET["/this/is/([^\\/]+)/with/(\\d+)"]()).toEqual(30); */
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(1);
 
         expect(anumargak.find("GET","/this/is/dynamic/with/123")()).toEqual(30);
     });
@@ -80,7 +85,8 @@ describe("Anumargak ", function() {
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two-:params", () => 30)
 
-        /* expect(anumargak.dynamicRoutes.GET["/this/is/([^\\/]+)/with/([^\\/]+)([^\\/]+)"]()).toEqual(30); */
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(1);
 
         expect(anumargak.find("GET","/this/is/dynamic/with/twoparams")()).toEqual(30);
     });
@@ -90,7 +96,8 @@ describe("Anumargak ", function() {
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", () => 30);
 
-        /* expect(anumargak.dynamicRoutes.GET["/this/is/([^\\/]+)/with/(\\d+)([^\\/]+)"]()).toEqual(30); */
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(1);
 
         expect(anumargak.find("GET","/this/is/dynamic/with/123pattern")()).toEqual(30);
     });
@@ -101,8 +108,8 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
         anumargak.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m", () => 50)
 
-        /* expect(anumargak.dynamicRoutes.GET["/this/is/([^\\/]+)/with/(\\d+)rest"]()).toEqual(30);
-        expect(anumargak.dynamicRoutes.GET["/example/at/(^\\d{2})h(^\\d{2})m"]()).toEqual(50); */
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(2);
+        expect(anumargak.count).toEqual(2);
 
         expect(anumargak.find("GET","/this/is/dynamic/with/123rest")()).toEqual(30);
         expect(anumargak.find("GET","/example/at/32h48m")()).toEqual(50);
@@ -114,8 +121,8 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
         anumargak.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m", () => 50)
 
-        /* expect(anumargak.dynamicRoutes.GET["/this/is/([^\\/]+)/with/(\\d+)rest"]()).toEqual(30);
-        expect(anumargak.dynamicRoutes.GET["/example/at/(^\\d{2})h(^\\d{2})m"]()).toEqual(50); */
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(2);
+        expect(anumargak.count).toEqual(2);
 
         expect(anumargak.find("GET","/this/is/dynamic/with/123rest")()).toEqual(30);
         expect(anumargak.find("GET","/example/at/32h48m")()).toEqual(50);
@@ -316,5 +323,23 @@ describe("Anumargak ", function() {
         
         expect(anumargak.count ).toEqual(2);
     });
+
+    /* const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    it("should lookup for aync callback", function(done) {
+        var anumargak = Anumargak({
+            ignoreTrailingSlash: true
+        });
+
+        async function callback (){
+            await sleep(100);
+            done();
+        }
+        anumargak.on("GET", "/this/is/static",callback);
+        
+        anumargak.lookup({
+            method: "GET", 
+            url: "/this/is/static"});
+    }); */
 
 });
