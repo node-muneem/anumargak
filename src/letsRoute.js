@@ -146,8 +146,16 @@ function Anumargak(options){
         DELETE : {},
         OPTIONS : {},
         PATCH : {},
-        TRACK : {},
-        CONNECT : {}
+        TRACE : {},
+        CONNECT : {},
+        COPY : {},
+        LINK : {},
+        UNLINK : {},
+        PURGE : {},
+        LOCK : {},
+        UNLOCK : {},
+        PROPFIND : {},
+        VIEW: {}
     }
 
     this.staticRoutes = {
@@ -158,8 +166,16 @@ function Anumargak(options){
         DELETE : {},
         OPTIONS : {},
         PATCH : {},
-        TRACK : {},
-        CONNECT : {}
+        TRACE : {},
+        CONNECT : {},
+        COPY : {},
+        LINK : {},
+        UNLINK : {},
+        PURGE : {},
+        LOCK : {},
+        UNLOCK : {},
+        PROPFIND : {},
+        VIEW: {}
     }
 
     if(options){
