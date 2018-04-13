@@ -1,8 +1,6 @@
 
 var { getFirstMatche,getAllMatches, urlSlice} = require("./util");
 
-
-
 var httpMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT", "COPY", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
 
 /**
@@ -26,9 +24,9 @@ Anumargak.prototype.on = function(method,url,fn){
 
 Anumargak.prototype._on = function(method,url,fn){
     if(httpMethods.indexOf(method) === -1) throw Error("Invalid method type "+method);
-    if(this.find(method,url)){
+    /* if(this.find(method,url)){
         this.count --;
-    }
+    } */
     this.count +=1;
     this.__on(method,url,fn);
 }
