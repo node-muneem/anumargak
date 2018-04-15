@@ -1,5 +1,5 @@
 # anumargak (अनुमार्गक)
-Fast HTTP Router
+Fastest HTTP Router
 
 <div align="center"><img src="static/anumargak.png"  width="300px"></div>
 
@@ -68,14 +68,16 @@ server.listen(3000, err => {
 ## Benchmark
 |method | url type  | anumargak (अनुमार्गक) | find-my-way|
 |------|------|------|------|
-|find | static | 32111671.23 | 2939447.287|
-|find | dynamic | 2767738.28 | 1220416.079|
-|find | with query param | 1735181.486 | 1178885.798|
-|lookup | static | 29686926.23 | 2288805.684|
-|lookup | dynamic | 2034493.062 | 1023664.399|
-|lookup | with query param | 1414253.913	894684.0352|
+| find | static | 27445088.79 | 3130047.682 |
+| find | dynamic | 2677420.545 | 1243596.976 |
+| find | dynamic with query | 1735442.647 | 1225523.327 |
+| find | enum | 25881565.6 | 1416613.461 |
+| lookup | static | 29077013.86 | 2400789.425 |
+| lookup | dynamic | 2030403.951 | 1101769.543 |
+| lookup | dynamic with query | 1419140.375 | 974787.2642 |
+| lookup | enum | 15906062.45 | 1191961.68 |
 
-*Note* : Above benchmark has been taken on 16gb RAM ubuntu machine with node v9.5.0 and npm v5.6.0
+*Note* : Above benchmark has been taken on 16gb RAM ubuntu 17.10 machine with node v9.5.0 and npm v5.6.0
 
 
 ![chart](./static/chart.png)
