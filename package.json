@@ -19,7 +19,10 @@
     "router",
     "http",
     "HTTP",
-    "fast"
+    "fast",
+    "static",
+    "dynamic",
+    "enum"
   ],
   "devDependencies": {
     "benchmark": "^2.1.4",
