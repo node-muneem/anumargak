@@ -23,6 +23,7 @@ Fastest HTTP Router
 * Support multiple path parameters
 * Handles enumerated URLs `\login\as\:role(admin|staff|user)`
 * Supports wildchar `\this\is\*`, `\this\is\wild*`
+* You nee not to register 2 separate routes for trailing slash. `\like\me\` and `\like\me`.
 * Capture parameters' value for dynamic URLs.
 * Warn (by default) or silently overwrites (when `overwriteAllow : true`) same or similar URLs
   * `\this\is\static` and `\this\is\static`

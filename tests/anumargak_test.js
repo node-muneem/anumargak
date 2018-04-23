@@ -15,6 +15,38 @@ describe("Anumargak ", function() {
         expect(anumargak.find("HEAD","/this/is/static")()).toEqual(30);
     });
 
+    it("should register for multiple methods", function() {
+        var anumargak = Anumargak();
+
+        anumargak.on(["GET", "HEAD"], "/this/is/static", () => 30);
+
+        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
+        expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
+        expect(anumargak.count).toEqual(2);
+
+        expect(anumargak.find("GET","/this/is/static")()).toEqual(30);
+        expect(anumargak.find("HEAD","/this/is/static")()).toEqual(30);
+    });
+
+    it("should error when invalid method type is given", function() {
+        var anumargak = Anumargak();
+
+        expect(() => {
+            anumargak.on(() => {} , "/this/is/static", () => 30);
+        }).toThrowError("Invalid method argument. String or array is expected.");
+
+    });
+
+    //TODO: removing method check can it make it multi purpose
+    it("should error when invalid method is given", function() {
+        var anumargak = Anumargak();
+
+        expect(() => {
+            anumargak.on("invalid" , "/this/is/static", () => 30);
+        }).toThrowError("Invalid method type invalid");
+
+    });
+
     it("should lookup static url", function(done) {
         var anumargak = Anumargak();
 
@@ -239,6 +271,56 @@ describe("Anumargak ", function() {
 
         expect(anumargak.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
         expect(anumargak.find("GET","/this/is/dynamic/with/string")() ).toEqual(50);
+    });
+
+    it("should ignore trailing slash", function() {
+        var anumargak = Anumargak({
+            ignoreTrailingSlash: true
+        });
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
+        anumargak.on("GET", "/this/is/static/", () => 50);
+        anumargak.on("GET", "/this/is/other/static", () => 70);
+
+        expect(anumargak.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic/with/123/")() ).toEqual(30);
+        expect(anumargak.find("GET","/this/is/static")() ).toEqual(50);
+        expect(anumargak.find("GET","/this/is/static/")() ).toEqual(50);
+        expect(anumargak.find("GET","/this/is/other/static")() ).toEqual(70);
+        expect(anumargak.find("GET","/this/is/other/static/")() ).toEqual(70);
+    });
+
+    it("should return default route", function() {
+        var anumargak = Anumargak({
+            defaultRoute : () => 50
+        });
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
+
+        expect(anumargak.find("GET","/this/is/not/matching")() ).toEqual(50);
+    });
+
+    it("should run default route", function(done) {
+        var anumargak = Anumargak({
+            defaultRoute : (req,res,params) => {
+                expect(params).toEqual(undefined);
+                done();
+            }
+        });
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", 
+            (req,res,params) => {
+                done.fail();
+            }
+        );
+        
+        var req = {
+            method : "GET",
+            url : "/this/is/not/matching"
+        }
+        
+        anumargak.lookup(req) ;
+
     });
 
     /* const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
