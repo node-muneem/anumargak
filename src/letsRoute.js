@@ -1,5 +1,5 @@
 
-var { getFirstMatche,getAllMatches, urlSlice} = require("./util");
+var { getFirstMatche, getAllMatches, doesMatch, urlSlice} = require("./util");
 
 var httpMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT", "COPY", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
 
@@ -22,18 +22,25 @@ Anumargak.prototype.on = function(method,url,fn){
     }
 }
 
-Anumargak.prototype._on = function(method,url,fn){
-    if(httpMethods.indexOf(method) === -1) throw Error("Invalid method type "+method);
-    /* if(this.find(method,url)){
-        this.count --;
-    } */
-    this.count +=1;
-    this.__on(method,url,fn);
-}
-
+var wildcardRegexStr = "\\/([^\\/:]*)\\*";
 var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
+Anumargak.prototype._on = function(method,url,fn){
+    if(httpMethods.indexOf(method) === -1) throw Error("Invalid method type "+method);
+    this.count +=1;
+
+    var matches = getFirstMatche(url,wildcardRegexStr);
+    if(matches){
+        url = url.substr(0,matches.index + 1) + ":*("+ matches[0].substr(1,matches[0].length -2) +".*)"
+    }
+
+    this.__on(method,url,fn);
+}
+
+/*
+paramas is useful in case of enum url where we know the parameter value in advance.
+*/
 Anumargak.prototype.__on = function(method,url,fn,params){
     
     var matches = getFirstMatche(url,enumRegexStr);
@@ -65,7 +72,12 @@ Anumargak.prototype.__on = function(method,url,fn,params){
 
             paramsArr.push(name);
             if(pattern){
-                url = url.replace(matches[i][0],pattern);
+                if(name === "*" && pattern !== "(.*)" ){
+                    var breakIndex = pattern.indexOf(".*");
+                    url = url.replace(matches[i][0], pattern.substr(1,breakIndex - 1) + "(.*)" );
+                }else{
+                    url = url.replace(matches[i][0],pattern);
+                }
             }else{
                 url = url.replace(matches[i][0],"([^\\/]+)");
             }
@@ -78,8 +90,10 @@ Anumargak.prototype.__on = function(method,url,fn,params){
             }
         }
         var regex = new RegExp("^"+url+"$");
+        this.checkIffRegistered(this.dynamicRoutes, method, url);
         this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params || {}, paramsArr : paramsArr};
     }else{//STATIC
+        this.checkIffRegistered(this.staticRoutes, method, url);
         this.staticRoutes[method][url] = { fn : fn, params: params };
         if(this.ignoreTrailingSlash){
             if(url.endsWith("/")){
@@ -91,6 +105,61 @@ Anumargak.prototype.__on = function(method,url,fn,params){
         }
     }
 }
+
+
+Anumargak.prototype.checkIffRegistered = function(arr,method,url){
+    var result = this.isRegistered(arr,method,url);
+    if(result){
+        if(!this.overwriteAllow){
+            throw Error(`Given route is matching with already registered route`);
+        }else{
+            //in case of dynamic URL previous URL must be deleted
+            if(this.dynamicRoutes[method][result]){
+                delete this.dynamicRoutes[method][result];
+            }
+            this.count --;
+        }
+    }else{
+      //don't do anything  
+    }
+    
+}
+
+var urlPartsRegex = new RegExp("(\\/\\(.*?\\)|\\/[^\\(\\)\\/]+)");
+
+Anumargak.prototype.isRegistered = function(arr,method,url){
+    if(arr[method][url]){//exact route is already registered
+        return url;
+    }else{
+        //check if tricky similar route is already registered
+        //"/this/path/:is/dynamic"
+        //"/this/:path/is/dynamic"
+        var urls = Object.keys(arr[method]);
+        var givenUrlParts = getAllMatches(url, urlPartsRegex);
+        for(var u_i in urls){//compare against all the registered URLs
+            var urlParts = getAllMatches(urls[u_i], urlPartsRegex);
+            if(urlParts.length !== givenUrlParts.length){
+                continue;
+            }else{
+                var matchUrl = true;
+                for(var urlPart_i in urlParts){
+                    if(doesMatch(urlParts[urlPart_i][1], givenUrlParts[urlPart_i][1])){
+                        continue
+                    }else{
+                        matchUrl = false;
+                        break;
+                    }
+                }
+                if(matchUrl){
+                    return urls[u_i];
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
 
 Anumargak.prototype.find = function(method,url){
     url = urlSlice(url);
@@ -183,6 +252,7 @@ function Anumargak(options){
             this.defaultFn = options.defaultRoute;
         }
         this.ignoreTrailingSlash = options.ignoreTrailingSlash || false;
+        this.overwriteAllow = options.overwriteAllow || false;
     }
 }
 

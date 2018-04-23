@@ -14,12 +14,30 @@ Fastest HTTP Router
 <a href="https://www.patreon.com/bePatron?u=9531404" data-patreon-widget-type="become-patron-button"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patron!" width="200" /></a>
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=KQJAX48SPUKNC"> <img src="https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png" alt="Stubmatic donate button"/></a>
 
+## Features
+
+* Fastest node js router (as far as Google & I know)
+* Framework independent
+* Supports static and  dynamic both type of URLs
+* Supports path parameter with defined type `\this\is\:num([0-9]+)`
+* Support multiple path parameters
+* Handles enumerated URLs `\login\as\:role(admin|staff|user)`
+* Supports wildchar `\this\is\*`, `\this\is\wild*`
+* Capture parameters' value for dynamic URLs.
+* Warn (by default) or silently overwrites (when `overwriteAllow : true`) same or similar URLs
+  * `\this\is\static` and `\this\is\static`
+  * `\this\:param\is\dynamic` and `\this\param\:is\dynamic`
+  * `\this\is\:uid([a-zA-Z0-9]+)` and `\this\is\:num([0-9]+)`
+* Add similar but not same URLs
+  * `\this\is\:age([0-9]+)` and `\this\is\:name([a-zA-Z]+)`
+
 ## Usage
 
 ```js
 const router = require('anumargak')({
   defaultRoute : defaultHandler,
-  ignoreTrailingSlash: true
+  ignoreTrailingSlash: true,
+  overwriteAllow : true
 });
 anumargak.on("GET", "/this/is/static", handler);
 anumargak.on(["POST","PUT"], "/this/is/static", handler);//supports array
@@ -42,9 +60,6 @@ anumargak.lookup(req,res) ;//will execute handler with req,res and params(for dy
 console.log(anumargak.count); //Print number of unique routes added
 ```
 
-**wildcard**: I couldn't understand the need of wildcard, hence not implemented. Please raise the issue if it should be implemented.
-
-
 Example with server
 ```js
 const http = require('http')
@@ -63,8 +78,33 @@ server.listen(3000, err => {
   console.log('Server listening on: http://localost:3000')
 })
 
-
 ```
+
+**wildcard**: wild cards are helpful when a route handler wants to control all the underlying paths. Eg. a handler registered with `/help*` may take care of all the help pages and static resources under the same path.
+
+```js
+//this/is/juglee/and/
+//this/is/juglee/and/wild
+//this/is/juglee/and/wild/and/unknown
+anumargak.on("GET", "/this/is/:dynamic/and/*", handler);
+
+//this/is/juglee/and/wild
+//this/is/juglee/and/wildlife
+//this/is/juglee/and/wild/and/unknown
+anumargak.on("GET", "/this/is/:dynamic/and/wild*", handler);
+```
+
+## Similar but not same URLs
+
+```js
+const anumargak = require('anumargak')()
+//this/is/my/75
+anumargak.on("GET", "/this/is/my/:age([0-9]{2,3})", handler);
+
+//this/is/my/amit
+anumargak.on("GET", "/this/is/my/:name([a-zA-z]+)", handler);
+```
+
 ## Benchmark
 |method | url type  | anumargak (अनुमार्गक) | find-my-way|
 |------|------|------|------|

@@ -1,3 +1,37 @@
+const RandExp = require('randexp');
+
+RandExp.prototype.randInt = (a,b) => {
+    return a;
+}
+
+exports.doesMatch = function(a, b) {
+    var a_IsRegex = a.indexOf("(") > 0;
+    var b_IsRegex = b.indexOf("(") > 0;
+
+    if(a_IsRegex && b_IsRegex){
+        //genetate random string for both regex and pass to the other regex
+
+        var aRegex = new RegExp(a);
+        var bRegex = new RegExp(b);
+
+        var aRand = new RandExp(aRegex).gen();
+        var bRand = new RandExp(bRegex).gen();
+
+        if(aRand === bRand){
+            return true;
+        }else{
+            return exports.doesMatch(a,bRand) && exports.doesMatch(aRand,b);
+        }
+
+    }else if(!a_IsRegex && b_IsRegex){
+        return new RegExp(b).test(a);
+    }else if(a_IsRegex && !b_IsRegex){
+        return new RegExp(a).test(b);
+    }else /* if(a_IsRegex && b_IsRegex) */{
+        return a === b;
+    }
+}
+
 exports.getFirstMatche = function(string, regex_str) {
     var regex = new RegExp(regex_str);
     return regex.exec(string);
