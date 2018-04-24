@@ -20,7 +20,7 @@ exports.doesMatch = function(a, b) {
         if(aRand === bRand){
             return true;
         }else{
-            return exports.doesMatch(a,bRand) && exports.doesMatch(aRand,b);
+            return exports.doesMatch(a,bRand) || exports.doesMatch(aRand,b);
         }
 
     }else if(!a_IsRegex && b_IsRegex){
