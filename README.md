@@ -30,6 +30,8 @@ Fastest HTTP Router
   * `\this\is\:uid([a-zA-Z0-9]+)` and `\this\is\:num([0-9]+)`
 * Add similar but not same URLs
   * `\this\is\:age([0-9]+)` and `\this\is\:name([a-zA-Z]+)`
+* Support of shorthand methods
+* You can always have a count on registered routes
 
 ## Usage
 
@@ -39,6 +41,7 @@ const router = require('anumargak')({
   ignoreTrailingSlash: true,
   overwriteAllow : true
 });
+
 anumargak.on("GET", "/this/is/static", handler);
 anumargak.on(["POST","PUT"], "/this/is/static", handler);//supports array
 anumargak.on("GET", "/this/is/:dynamic", handler);
@@ -92,6 +95,18 @@ anumargak.on("GET", "/this/is/:dynamic/and/*", handler);
 //this/is/juglee/and/wildlife
 //this/is/juglee/and/wild/and/unknown
 anumargak.on("GET", "/this/is/:dynamic/and/wild*", handler);
+```
+
+**shorthand methods**
+
+```js
+var router = Anumargak();
+
+router.get("/this/is/:dynamic", () => 30);
+router.head("/this/is/:dynamic", () => 30);
+router.post("/this/is/:dynamic", () => 30);
+router.put("/this/is/:dynamic", () => 30);
+router.delete("/this/is/:dynamic", () => 30);
 ```
 
 ## Similar but not same URLs
