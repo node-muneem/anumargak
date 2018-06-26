@@ -237,7 +237,7 @@ Anumargak.prototype.post = function(url,fn){
     this.on("POST",url,fn);
 }
 /**
- * Adds routes for GET method and URL
+ * Adds routes for DELETE method and URL
  * @param {string} url 
  * @param {function} fn 
  */
