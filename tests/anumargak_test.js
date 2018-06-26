@@ -322,6 +322,50 @@ describe("Anumargak ", function() {
         anumargak.lookup(req) ;
 
     });
+    it("should register static routes for 'GET, POST, DELETE, PUT, HEAD' methods", function(){
+        var anumargak = Anumargak();
+
+        anumargak.get("/this/is/static", () => 50);
+        anumargak.post("/this/is/static", () => 50);
+        anumargak.delete("/this/is/static", () => 50);
+        anumargak.put("/this/is/static", () => 50);
+        anumargak.head("/this/is/static", () => 50);
+
+        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
+        expect(Object.keys(anumargak.staticRoutes.POST).length).toEqual(1);
+        expect(Object.keys(anumargak.staticRoutes.DELETE).length).toEqual(1);
+        expect(Object.keys(anumargak.staticRoutes.PUT).length).toEqual(1);
+        expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
+        expect(anumargak.count).toEqual(5);
+
+        expect(anumargak.find("GET","/this/is/static")()).toEqual(50);
+        expect(anumargak.find("POST","/this/is/static")()).toEqual(50);
+        expect(anumargak.find("DELETE","/this/is/static")()).toEqual(50);
+        expect(anumargak.find("PUT","/this/is/static")()).toEqual(50);
+        expect(anumargak.find("HEAD","/this/is/static")()).toEqual(50);
+    });
+    it("should register dynamic routes for 'GET, POST, DELETE, PUT, HEAD' methods", function() {
+        var anumargak = Anumargak();
+
+        anumargak.get("/this/is/:dynamic", () => 30);
+        anumargak.head("/this/is/:dynamic", () => 30);
+        anumargak.post("/this/is/:dynamic", () => 30);
+        anumargak.put("/this/is/:dynamic", () => 30);
+        anumargak.delete("/this/is/:dynamic", () => 30);
+
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
+        expect(Object.keys(anumargak.dynamicRoutes.POST).length).toEqual(1);
+        expect(Object.keys(anumargak.dynamicRoutes.PUT).length).toEqual(1);
+        expect(Object.keys(anumargak.dynamicRoutes.DELETE).length).toEqual(1);
+        expect(anumargak.count).toEqual(5);
+
+        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("POST","/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("PUT","/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("DELETE","/this/is/dynamic")()).toEqual(30);
+    }); 
 
     /* const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 

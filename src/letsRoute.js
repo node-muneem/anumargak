@@ -204,6 +204,47 @@ Anumargak.prototype._lookup = function(url,method){
     return { fn : this.defaultFn };
 }
 
+/**
+ * Adds routes for GET method and URL
+ * @param {string} url 
+ * @param {function} fn 
+ */
+Anumargak.prototype.get = function(url,fn){
+    this.on("GET",url,fn);
+}
+/**
+ * Adds routes for HEAD method and URL
+ * @param {string} url 
+ * @param {function} fn 
+ */
+Anumargak.prototype.head = function(url,fn){
+    this.on("HEAD",url,fn);
+}
+/**
+ * Adds routes for PUT method and URL
+ * @param {string} url 
+ * @param {function} fn 
+ */
+Anumargak.prototype.put = function(url,fn){
+    this.on("PUT",url,fn);
+}
+/**
+ * Adds routes for POST method and URL
+ * @param {string} url 
+ * @param {function} fn 
+ */
+Anumargak.prototype.post = function(url,fn){
+    this.on("POST",url,fn);
+}
+/**
+ * Adds routes for DELETE method and URL
+ * @param {string} url 
+ * @param {function} fn 
+ */
+Anumargak.prototype.delete = function(url,fn){
+    this.on("DELETE",url,fn);
+}
+
 function Anumargak(options){
     if(!(this instanceof Anumargak )) return new Anumargak(options);
     this.count = 0;
