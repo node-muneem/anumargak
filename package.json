@@ -23,7 +23,9 @@
     "static",
     "dynamic",
     "enum",
-    "wildchar"
+    "wildchar",
+    "async",
+    "await"
   ],
   "devDependencies": {
     "benchmark": "^2.1.4",
