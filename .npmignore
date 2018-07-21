@@ -1,0 +1,8 @@
+benchmark
+coverage
+spec
+tests
+docs
+node_modules
+.*
+lib
