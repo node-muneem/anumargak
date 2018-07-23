@@ -39,6 +39,7 @@ Fastest HTTP Router
 const router = require('anumargak')({
   defaultRoute : defaultHandler,
   ignoreTrailingSlash: true,
+  ignoreLeadingSlash: true,
   overwriteAllow : true
 });
 

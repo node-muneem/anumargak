@@ -299,7 +299,7 @@ function Anumargak(options) {
             this.defaultFn = options.defaultRoute;
         }
         this.ignoreTrailingSlash = options.ignoreTrailingSlash || false;
-        this.ignoreLeadingSlash = (options.ignoreLeadingSlash === undefined) ? true : options.ignoreLeadingSlash;
+        this.ignoreLeadingSlash = options.ignoreLeadingSlash || true;
         this.overwriteAllow = options.overwriteAllow || false;
     }
 }
