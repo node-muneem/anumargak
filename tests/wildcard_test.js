@@ -171,4 +171,24 @@ describe("Anumargak wildchar", function() {
         
         anumargak.lookup(req) ;
     });
+
+    it("LOOKUP: should not capture but match when there is no value of param", function(done) {
+        var anumargak = Anumargak();
+
+        anumargak.on("GET", "/this/is/dyna*", 
+            (req,res,params) => {
+                expect(params).toEqual({
+                    "*" : ""
+                });
+                done();
+            }
+        );
+        
+        var req = {
+            method : "GET",
+            url : "/this/is/dyna"
+        }
+        
+        anumargak.lookup(req) ;
+    });
 });
