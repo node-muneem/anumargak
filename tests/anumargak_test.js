@@ -1,7 +1,7 @@
 var Anumargak = require("./../src/letsRoute");
 
-describe("Anumargak ", function() {
-    it("should find static url", function() {
+describe("Anumargak ", function () {
+    it("should find static url", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/static", () => 30);
@@ -11,11 +11,11 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET","/this/is/static")()).toEqual(30);
-        expect(anumargak.find("HEAD","/this/is/static")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/static")()).toEqual(30);
+        expect(anumargak.find("HEAD", "/this/is/static")()).toEqual(30);
     });
 
-    it("should register for multiple methods", function() {
+    it("should register for multiple methods", function () {
         var anumargak = Anumargak();
 
         anumargak.on(["GET", "HEAD"], "/this/is/static", () => 30);
@@ -24,43 +24,44 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET","/this/is/static")()).toEqual(30);
-        expect(anumargak.find("HEAD","/this/is/static")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/static")()).toEqual(30);
+        expect(anumargak.find("HEAD", "/this/is/static")()).toEqual(30);
     });
 
-    it("should error when invalid method type is given", function() {
+    it("should error when invalid method type is given", function () {
         var anumargak = Anumargak();
 
         expect(() => {
-            anumargak.on(() => {} , "/this/is/static", () => 30);
+            anumargak.on(() => { }, "/this/is/static", () => 30);
         }).toThrowError("Invalid method argument. String or array is expected.");
 
     });
 
     //TODO: removing method check can it make it multi purpose
-    it("should error when invalid method is given", function() {
+    it("should error when invalid method is given", function () {
         var anumargak = Anumargak();
 
         expect(() => {
-            anumargak.on("invalid" , "/this/is/static", () => 30);
+            anumargak.on("invalid", "/this/is/static", () => 30);
         }).toThrowError("Invalid method type invalid");
 
     });
 
-    it("should lookup static url", function(done) {
+    it("should lookup static url", function (done) {
         var anumargak = Anumargak();
 
-        anumargak.on("GET", "/this/is/static", (req,res) => {
+        anumargak.on("GET", "/this/is/static", (req, res) => {
             done();
         });
 
         anumargak.lookup({
             method: "GET",
-            url: "/this/is/static"}
+            url: "/this/is/static"
+        }
         );
     });
 
-    it("should set dynamic url", function() {
+    it("should set dynamic url", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic", () => 30);
@@ -70,24 +71,24 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(30);
-    }); 
+        expect(anumargak.find("GET", "/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("HEAD", "/this/is/dynamic")()).toEqual(30);
+    });
 
-    it("should set multiple urls under the same route ", function() {
+    it("should set multiple urls under the same route ", function () {
         var anumargak = Anumargak();
 
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30)
         anumargak.on("HEAD", "/this/is/:dynamic/2", () => 50)
-        
+
         expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(2);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("HEAD","/this/is/dynamic/2")()).toEqual(50);
+        expect(anumargak.find("HEAD", "/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("HEAD", "/this/is/dynamic/2")()).toEqual(50);
     });
 
-    it("should overwrite  same route ", function() {
+    it("should overwrite  same route ", function () {
         var anumargak = Anumargak({
             overwriteAllow: true
         });
@@ -98,10 +99,10 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(50);
+        expect(anumargak.find("HEAD", "/this/is/dynamic")()).toEqual(50);
     });
 
-    it("should overwrite  same route ", function() {
+    it("should overwrite  same route ", function () {
         var anumargak = Anumargak();
 
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30)
@@ -111,7 +112,7 @@ describe("Anumargak ", function() {
 
     });
 
-    it("FIND: should overwrite similar URLs", function() {
+    it("FIND: should overwrite similar URLs", function () {
         var anumargak = Anumargak({
             overwriteAllow: true
         });
@@ -122,12 +123,12 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/test/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("GET","/this/path/isalso/dynamic")).toEqual(undefined);
-        expect(anumargak.find("GET","/this/path/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/test/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/path/isalso/dynamic")).toEqual(undefined);
+        expect(anumargak.find("GET", "/this/path/is/dynamic")()).toEqual(30);
     });
 
-    it("should set dynamic url with two parameters", function() {
+    it("should set dynamic url with two parameters", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
@@ -135,11 +136,11 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123")()).toEqual(30);
     });
 
     //TODO: change the regex to identify consecutive params
-    it("should set dynamic url with two consecutive parameters", function() {
+    it("should set dynamic url with two consecutive parameters", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two-:params", () => 30)
@@ -147,10 +148,10 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/twoparams")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/twoparams")()).toEqual(30);
     });
 
-    it("should set dynamic url with two consecutive parameters with pattern", function() {
+    it("should set dynamic url with two consecutive parameters with pattern", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", () => 30);
@@ -158,10 +159,10 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123pattern")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123pattern")()).toEqual(30);
     });
 
-    it("should set dynamic url with parameter with val", function() {
+    it("should set dynamic url with parameter with val", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
@@ -170,11 +171,11 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(2);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123rest")()).toEqual(30);
-        expect(anumargak.find("GET","/example/at/32h48m")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123rest")()).toEqual(30);
+        expect(anumargak.find("GET", "/example/at/32h48m")()).toEqual(50);
     });
 
-    it("should set dynamic url with parameter with val", function() {
+    it("should set dynamic url with parameter with val", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", () => 30);
@@ -183,97 +184,97 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(2);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123rest")()).toEqual(30);
-        expect(anumargak.find("GET","/example/at/32h48m")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123rest")()).toEqual(30);
+        expect(anumargak.find("GET", "/example/at/32h48m")()).toEqual(50);
     });
 
-    it("should lookup for correct function", function(done) {
+    it("should lookup for correct function", function (done) {
         var anumargak = Anumargak();
 
-        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", 
-            (req,res,params) => {
+        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
+            (req, res, params) => {
                 expect(params).toEqual({
-                    dynamic : "dynamic",
-                    two : "123"
+                    dynamic: "dynamic",
+                    two: "123"
                 });
                 done();
             }
         );
-        anumargak.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m", 
-            (req,res,params) => {
+        anumargak.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m",
+            (req, res, params) => {
                 expect(params).toEqual({
-                    hour : "32",
-                    minute : "48"
+                    hour: "32",
+                    minute: "48"
                 });
                 done();
             }
         );
 
         var req = {
-            method : "GET",
-            url : "/this/is/dynamic/with/123rest"
+            method: "GET",
+            url: "/this/is/dynamic/with/123rest"
         }
 
-        anumargak.lookup(req) ;
+        anumargak.lookup(req);
 
         var req = {
-            method : "GET",
-            url : "/example/at/32h48m"
+            method: "GET",
+            url: "/example/at/32h48m"
         }
 
-        anumargak.lookup(req) ;
-        
+        anumargak.lookup(req);
+
     });
 
-    
-    it("should find correct function leaving query paramaters apart", function() {
+
+    it("should find correct function leaving query paramaters apart", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123?ignore=me")() ).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/with/123#ignoreme")() ).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123?ignore=me")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123#ignoreme")()).toEqual(30);
     });
 
-    it("should lookup correct function leaving query paramaters apart", function(done) {
+    it("should lookup correct function leaving query paramaters apart", function (done) {
         var anumargak = Anumargak();
-        
-        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", 
-            (req,res,params) => {
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
+            (req, res, params) => {
                 expect(params).toEqual({
-                    dynamic : "dynamic",
-                    two : "123"
+                    dynamic: "dynamic",
+                    two: "123"
                 });
                 done();
             }
         );
-        
+
         var req = {
-            method : "GET",
-            url : "/this/is/dynamic/with/123rest?ignore=me"
+            method: "GET",
+            url: "/this/is/dynamic/with/123rest?ignore=me"
         }
-        
-        anumargak.lookup(req) ;
-        
+
+        anumargak.lookup(req);
+
         var req = {
-            method : "GET",
-            url : "/this/is/dynamic/with/123rest#ignoreme"
+            method: "GET",
+            url: "/this/is/dynamic/with/123rest#ignoreme"
         }
-        
-        anumargak.lookup(req) ;
+
+        anumargak.lookup(req);
     });
 
-    it("should support similar route path with different parameter", function() {
+    it("should support similar route path with different parameter", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", () => 30);
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern([a-z]+)", () => 50);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/with/string")() ).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/string")()).toEqual(50);
     });
 
-    it("should ignore trailing slash", function() {
+    it("should ignore trailing slash", function () {
         var anumargak = Anumargak({
             ignoreTrailingSlash: true
         });
@@ -282,47 +283,66 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/this/is/static/", () => 50);
         anumargak.on("GET", "/this/is/other/static", () => 70);
 
-        expect(anumargak.find("GET","/this/is/dynamic/with/123")() ).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/with/123/")() ).toEqual(30);
-        expect(anumargak.find("GET","/this/is/static")() ).toEqual(50);
-        expect(anumargak.find("GET","/this/is/static/")() ).toEqual(50);
-        expect(anumargak.find("GET","/this/is/other/static")() ).toEqual(70);
-        expect(anumargak.find("GET","/this/is/other/static/")() ).toEqual(70);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123/")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/static")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/static/")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/other/static")()).toEqual(70);
+        expect(anumargak.find("GET", "/this/is/other/static/")()).toEqual(70);
     });
 
-    it("should return default route", function() {
+    it("should ignore leading slash", function () {
         var anumargak = Anumargak({
-            defaultRoute : () => 50
+            ignoreTrailingSlash: true,
+            ignoreLeadingSlash: true
+        });
+
+        anumargak.on("GET", "this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
+        anumargak.on("GET", "this/is/static/", () => 50);
+        anumargak.on("GET", "this/is/other/static", () => 70);
+
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/dynamic/with/123/")()).toEqual(30);
+        expect(anumargak.find("GET", "/this/is/static")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/static/")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/other/static")()).toEqual(70);
+        expect(anumargak.find("GET", "/this/is/other/static/")()).toEqual(70);
+        expect(anumargak.count).toEqual(3);
+    });
+
+    it("should return default route", function () {
+        var anumargak = Anumargak({
+            defaultRoute: () => 50
         });
 
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
 
-        expect(anumargak.find("GET","/this/is/not/matching")() ).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/not/matching")()).toEqual(50);
     });
 
-    it("should run default route", function(done) {
+    it("should run default route", function (done) {
         var anumargak = Anumargak({
-            defaultRoute : (req,res,params) => {
+            defaultRoute: (req, res, params) => {
                 expect(params).toEqual(undefined);
                 done();
             }
         });
 
-        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", 
-            (req,res,params) => {
+        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
+            (req, res, params) => {
                 done.fail();
             }
         );
-        
+
         var req = {
-            method : "GET",
-            url : "/this/is/not/matching"
+            method: "GET",
+            url: "/this/is/not/matching"
         }
-        
-        anumargak.lookup(req) ;
+
+        anumargak.lookup(req);
 
     });
-    it("should register static routes for 'GET, POST, DELETE, PUT, HEAD' methods", function(){
+    it("should register static routes for 'GET, POST, DELETE, PUT, HEAD' methods", function () {
         var anumargak = Anumargak();
 
         anumargak.get("/this/is/static", () => 50);
@@ -338,13 +358,13 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(5);
 
-        expect(anumargak.find("GET","/this/is/static")()).toEqual(50);
-        expect(anumargak.find("POST","/this/is/static")()).toEqual(50);
-        expect(anumargak.find("DELETE","/this/is/static")()).toEqual(50);
-        expect(anumargak.find("PUT","/this/is/static")()).toEqual(50);
-        expect(anumargak.find("HEAD","/this/is/static")()).toEqual(50);
+        expect(anumargak.find("GET", "/this/is/static")()).toEqual(50);
+        expect(anumargak.find("POST", "/this/is/static")()).toEqual(50);
+        expect(anumargak.find("DELETE", "/this/is/static")()).toEqual(50);
+        expect(anumargak.find("PUT", "/this/is/static")()).toEqual(50);
+        expect(anumargak.find("HEAD", "/this/is/static")()).toEqual(50);
     });
-    it("should register dynamic routes for 'GET, POST, DELETE, PUT, HEAD' methods", function() {
+    it("should register dynamic routes for 'GET, POST, DELETE, PUT, HEAD' methods", function () {
         var anumargak = Anumargak();
 
         anumargak.get("/this/is/:dynamic", () => 30);
@@ -360,12 +380,12 @@ describe("Anumargak ", function() {
         expect(Object.keys(anumargak.dynamicRoutes.DELETE).length).toEqual(1);
         expect(anumargak.count).toEqual(5);
 
-        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("HEAD","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("POST","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("PUT","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("DELETE","/this/is/dynamic")()).toEqual(30);
-    }); 
+        expect(anumargak.find("GET", "/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("HEAD", "/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("POST", "/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("PUT", "/this/is/dynamic")()).toEqual(30);
+        expect(anumargak.find("DELETE", "/this/is/dynamic")()).toEqual(30);
+    });
 
     /* const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
