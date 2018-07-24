@@ -148,3 +148,9 @@ anumargak.on("GET", "/this/is/my/:name([a-zA-z]+)", handler);
 - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser/) : Pure JS implementation to parse XML to JSON, JS Object, or Nimn format. Parse back from JSON, JS Object to XML. Or just validate XML syntax.
 - [Grapes](https://github.com/amitguptagwl/grapes) : Flexible Regular expression engine (for java) which can be applied on char stream. (under development)
 - [Muneem (मुनीम)](https://github.com/muneem4node/muneem): A framework to write fast web services in easy way. Designed specially for developers, QAs, Maintainers, and BAs.
+
+
+## Contributors
+- <img src="https://avatars2.githubusercontent.com/u/7692328?v=4" width="20" height="20"/> [amitguptagwl](https://github.com/amitguptagwl)
+- <img src="https://avatars2.githubusercontent.com/u/10572008?v=4" width="20" height="20"/> [rajeshdh](https://github.com/rajeshdh)
+- <img src="https://avatars3.githubusercontent.com/u/4491530?v=4" width="20" height="20"/> [shuklajay117](https://github.com/shuklajay117)
