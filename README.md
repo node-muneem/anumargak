@@ -1,4 +1,4 @@
-# anumargak (अनुमार्गक)
+# अनुमार्गक (anumargak)
 Fastest HTTP Router
 
 <div align="center"><img src="static/anumargak.png"  width="300px"></div>
@@ -120,6 +120,30 @@ anumargak.on("GET", "/this/is/my/:age([0-9]{2,3})", handler);
 //this/is/my/amit
 anumargak.on("GET", "/this/is/my/:name([a-zA-z]+)", handler);
 ```
+
+## Named Expressions
+
+Anumargak lets you add named expressions. You can use them at the time of registering the route.
+
+```js
+
+router.addNamedExpression("num","\\d+");
+router.addNamedExpression({
+   "name1" : "regx1",
+   "name2" : "regx2",
+});
+
+```
+
+Example routes
+
+```js
+/send/to/:phone(:phone:)
+/authenticate/:token(:alphanum:)
+```
+
+Adding them make this router simple to use.
+
 
 ## Benchmark
 |method | url type  | anumargak (अनुमार्गक) | find-my-way|
