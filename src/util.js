@@ -42,11 +42,6 @@ exports.getAllMatches = function (string, regex_str) {
     return exports.getAllRegexMatches(string, regex);
 }
 
-exports.getNamedExpressionMatches = function (string, regex_str) {
-    var regex = new RegExp(regex_str, "g");
-    return exports.getAllRegexMatches(string, regex);
-}
-
 exports.getAllRegexMatches = function (string, regex) {
     var matches = [];
     var match;

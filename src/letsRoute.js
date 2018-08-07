@@ -1,24 +1,12 @@
 
-var { getFirstMatche, getAllMatches, doesMatch, urlSlice, getNamedExpressionMatches } = require("./util");
+var { getFirstMatche, getAllMatches, doesMatch, urlSlice } = require("./util");
+var namedExpressionsStore = require("./namedExpressionsStore");
 
 var httpMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT", "COPY", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
 
-/**
- * Adds named expression to a namedExpression object which can be used directly in params
- * @param {string | object} handledByArgumentsObject 
- */
-Anumargak.prototype.addNamedExpression = function () {
 
-    var firstParam = arguments[0];
-    if (typeof firstParam === "string" && typeof arguments[1] === "string") {
-        this.namedExpression[firstParam] = arguments[1];
-    } else if (typeof firstParam === "object" && Object.prototype.toString.call(firstParam) === "[object Object]") {
-        for (var key in firstParam) {
-            this.namedExpression[key] = firstParam[key];
-        }
-    } else {
-        throw Error("Invalid method argument. Two parameters of type String or only object is expected.");
-    }
+Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
+    this.namedExpressions.addNamedExpression(arg1, arg2);
 }
 
 /**
@@ -44,23 +32,6 @@ var wildcardRegexStr = "\\/([^\\/:]*)\\*";
 var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
-function replaceNamedExpression(url) {
-    var namedExpressionRegexStr = "\\(:(.*?):\\)";
-    var namedExpressionMatches = getNamedExpressionMatches(url, namedExpressionRegexStr);
-
-    if (namedExpressionMatches && namedExpressionMatches.length > 0) {
-        for (var i = 0; i < namedExpressionMatches.length; i++) {
-            var matchedNamedKey = namedExpressionMatches[i][1];
-            if (this.namedExpression[matchedNamedKey]) {
-                url = url.replace(":" + matchedNamedKey + ":", this.namedExpression[matchedNamedKey]);
-            } else {
-                throw Error("Usage of named expression in url as " + matchedNamedKey + ". Define it using addNamedExpression method before using in URLs.");
-            }
-        }
-    }
-
-    return url;
-}
 
 Anumargak.prototype._on = function (method, url, fn) {
     if (httpMethods.indexOf(method) === -1) throw Error("Invalid method type " + method);
@@ -72,7 +43,7 @@ Anumargak.prototype._on = function (method, url, fn) {
         }
     }
 
-    url = replaceNamedExpression.call(this, url);
+    url = this.namedExpressions.replaceNamedExpression(url);
 
     var matches = getFirstMatche(url, wildcardRegexStr);
     if (matches) {
@@ -292,7 +263,7 @@ Anumargak.prototype.delete = function (url, fn) {
 function Anumargak(options) {
     if (!(this instanceof Anumargak)) return new Anumargak(options);
     this.count = 0;
-    this.namedExpression = {};
+    this.namedExpressions = namedExpressionsStore();
     this.dynamicRoutes = {
         GET: {},
         HEAD: {},

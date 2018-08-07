@@ -392,14 +392,14 @@ describe("Anumargak ", function () {
 
         anumargak.addNamedExpression("num", "\\d+");
 
-        expect(Object.keys(anumargak.namedExpression).length).toEqual(1);
+        expect(anumargak.namedExpressions.count() ).toEqual(1);
 
         anumargak.addNamedExpression({
             "oneNum": "\\d",
             "oneOrNoNum": "\\d?",
         });
 
-        expect(Object.keys(anumargak.namedExpression).length).toEqual(3);
+        expect( anumargak.namedExpressions.count() ).toEqual(3);
 
     });
 
