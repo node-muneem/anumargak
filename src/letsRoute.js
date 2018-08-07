@@ -11,17 +11,22 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
 
 /**
  * Adds routes against the given method and URL
- * @param {string} method 
+ * @param {string | array} method 
  * @param {string} url 
  * @param {function} fn 
  */
-Anumargak.prototype.on = function (method, url, fn) {
+Anumargak.prototype.on = function (method, url, options, fn) {
+
+    if (typeof options === 'function') {
+        fn = options;
+        options = {};
+    }
 
     if (typeof method === "string") {
-        this._on(method, url, fn);
+        this.normalizeUrl(method, url, options, fn);
     } else if (Array.isArray(method)) {
         for (var i = 0; i < method.length; i++) {
-            this._on(method[i], url, fn);
+            this.normalizeUrl(method[i], url, options, fn);
         }
     } else {
         throw Error("Invalid method argument. String or array is expected.");
@@ -33,10 +38,13 @@ var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
 
-Anumargak.prototype._on = function (method, url, fn) {
+Anumargak.prototype.normalizeUrl = function (method, url, options, fn) {
+    
+    //validate for correct input
     if (httpMethods.indexOf(method) === -1) throw Error("Invalid method type " + method);
     this.count += 1;
 
+    //Normalize URL
     if (this.ignoreLeadingSlash) {
         if (url.startsWith("/") === false) {
             url = "/" + url;
@@ -50,14 +58,34 @@ Anumargak.prototype._on = function (method, url, fn) {
         url = url.substr(0, matches.index + 1) + ":*(" + matches[0].substr(1, matches[0].length - 2) + ".*)"
     }
 
-    this.__on(method, url, fn);
+    this._addRoute(method, url, options, fn);
 }
 
 /*
 paramas is useful in case of enum url where we know the parameter value in advance.
 */
-Anumargak.prototype.__on = function (method, url, fn, params) {
+Anumargak.prototype._addRoute = function (method, url, options, fn, params) {
 
+    var found = this._checkForEnum(method, url, options, fn, params);
+    if(found) return;
+
+    var matches = getAllMatches(url, paramRegexStr);
+    if (matches.length > 0) {//DYNAMIC
+        this._addDynamic(method, url, options, fn, params, matches);
+    } else {//STATIC
+        this._addStatic(method, url, options, fn, params);
+    }
+}
+
+/**
+ * Check and register if given URL need enumerated params.
+ * @param {string} method 
+ * @param {string} url 
+ * @param {object | function} options 
+ * @param {function} fn 
+ * @param {object} params 
+ */
+Anumargak.prototype._checkForEnum = function(method, url, options, fn, params){
     var matches = getFirstMatche(url, enumRegexStr);
     if (matches) {
         var name = matches[1];
@@ -73,56 +101,56 @@ Anumargak.prototype.__on = function (method, url, fn, params) {
                 params = {};
                 params[name] = arr[i];
             }
-            this.__on(method, newurl, fn, params);
+            this._addRoute(method, newurl, options, fn, params);
         }
-        return;
-    }
-
-    var matches = getAllMatches(url, paramRegexStr);
-    if (matches.length > 0) {//DYNAMIC
-        var paramsArr = [];
-        for (var i = 0; i < matches.length; i++) {
-            var name = matches[i][1];
-            var pattern = matches[i][2];
-
-            paramsArr.push(name);
-            if (pattern) {
-                if (name === "*" && pattern !== "(.*)") {
-                    var breakIndex = pattern.indexOf(".*");
-                    url = url.replace(matches[i][0], pattern.substr(1, breakIndex - 1) + "(.*)");
-                } else {
-                    url = url.replace(matches[i][0], pattern);
-                }
-            } else {
-                url = url.replace(matches[i][0], "([^\\/]+)");
-            }
-            if (this.ignoreTrailingSlash) {
-                if (url.endsWith("/")) {
-                    url = url + "?";
-                } else {
-                    url = url + "/?";
-                }
-            }
-        }
-        var regex = new RegExp("^" + url + "$");
-        this.checkIffRegistered(this.dynamicRoutes, method, url);
-        this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params || {}, paramsArr: paramsArr };
-    } else {//STATIC
-        this.checkIffRegistered(this.staticRoutes, method, url);
-        this.staticRoutes[method][url] = { fn: fn, params: params };
-        if (this.ignoreTrailingSlash) {
-            if (url.endsWith("/")) {
-                url = url.substr(0, url.length - 1);
-            } else {
-                url = url + "/";
-            }
-            this.staticRoutes[method][url] = { fn: fn, params: params };
-        }
+        return true;
     }
 }
 
+Anumargak.prototype._addStatic = function(method, url, options, fn, params){
+    this.checkIfRegistered(this.staticRoutes, method, url);
+    this.staticRoutes[method][url] = { fn: fn, params: params };
+    if (this.ignoreTrailingSlash) {
+        if (url.endsWith("/")) {
+            url = url.substr(0, url.length - 1);
+        } else {
+            url = url + "/";
+        }
+        this.staticRoutes[method][url] = { fn: fn, params: params };
+    }
+}
 
-Anumargak.prototype.checkIffRegistered = function (arr, method, url) {
+Anumargak.prototype._addDynamic = function(method, url, options, fn, params, matches){
+    var paramsArr = [];
+    for (var i = 0; i < matches.length; i++) {
+        var name = matches[i][1];
+        var pattern = matches[i][2];
+
+        paramsArr.push(name);
+        if (pattern) {
+            if (name === "*" && pattern !== "(.*)") {
+                var breakIndex = pattern.indexOf(".*");
+                url = url.replace(matches[i][0], pattern.substr(1, breakIndex - 1) + "(.*)");
+            } else {
+                url = url.replace(matches[i][0], pattern);
+            }
+        } else {
+            url = url.replace(matches[i][0], "([^\\/]+)");
+        }
+        if (this.ignoreTrailingSlash) {
+            if (url.endsWith("/")) {
+                url = url + "?";
+            } else {
+                url = url + "/?";
+            }
+        }
+    }
+    var regex = new RegExp("^" + url + "$");
+    this.checkIfRegistered(this.dynamicRoutes, method, url);
+    this.dynamicRoutes[method][url] = { regex: regex, fn: fn, params: params || {}, paramsArr: paramsArr };
+}
+
+Anumargak.prototype.checkIfRegistered = function (arr, method, url) {
     var result = this.isRegistered(arr, method, url);
     if (result) {
         if (!this.overwriteAllow) {
