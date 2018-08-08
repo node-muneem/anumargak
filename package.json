@@ -1,6 +1,6 @@
 {
   "name": "anumargak",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Amazing fast multipurpose simple to use web/ HTTP router",
   "main": "./src/letsRoute.js",
   "scripts": {
@@ -27,16 +27,19 @@
     "wildchar",
     "async",
     "await",
-    "named expressions"
+    "named expressions",
+    "version"
   ],
   "devDependencies": {
     "benchmark": "^2.1.4",
-    "find-my-way": "^1.11.1",
+    "find-my-way": "^1.15.1",
     "jasmine": "^3.1.0",
     "jasmine-core": "^3.1.0",
-    "nyc": "^11.6.0"
+    "mock-req": "^0.2.0",
+    "nyc": "^11.9.0"
   },
   "dependencies": {
-    "randexp": "^0.4.9"
+    "randexp": "^0.4.9",
+    "semver-store": "^0.3.0"
   }
 }

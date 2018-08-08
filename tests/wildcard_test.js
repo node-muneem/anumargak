@@ -1,6 +1,7 @@
 var Anumargak = require("./../src/letsRoute");
 
 describe("Anumargak wildchar", function() {
+    
     it("FIND: should capture rest url when /*/", function() {
         var anumargak = Anumargak();
 
@@ -71,25 +72,6 @@ describe("Anumargak wildchar", function() {
         expect(anumargak.find("GET","/this/test/is/")()).toEqual(30);
     });
 
-    it("FIND: should overwrite similar URLs", function() {
-        var anumargak = Anumargak({
-            overwriteAllow : true
-        });
-
-        anumargak.on("GET", "/this/:param/is/*/rest/url", () => 30);
-        anumargak.on("GET", "/this/param/:is/*/rest/url", () => 50);
-
-        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
-        expect(anumargak.count).toEqual(1);
-
-        expect(anumargak.find("GET","/this/test/is/dynamic")).toEqual(undefined);
-        expect(anumargak.find("GET","/this/param/is/dynamic")()).toEqual(50);
-        expect(anumargak.find("GET","/this/test/is/*")).toEqual(undefined);
-        expect(anumargak.find("GET","/this/param/is/*")()).toEqual(50);
-        expect(anumargak.find("GET","/this/test/is/")).toEqual(undefined);
-        expect(anumargak.find("GET","/this/param/is/")()).toEqual(50);
-    });
-
     it("LOOKUP: should capture rest url when /some*/", function(done) {
         var anumargak = Anumargak();
 
@@ -104,7 +86,8 @@ describe("Anumargak wildchar", function() {
         
         var req = {
             method : "GET",
-            url : "/this/is/dynamic/with/123rest?ignore=me"
+            url : "/this/is/dynamic/with/123rest?ignore=me",
+            headers: {}
         }
         
         anumargak.lookup(req) ;
@@ -125,7 +108,8 @@ describe("Anumargak wildchar", function() {
         
         var req = {
             method : "GET",
-            url : "/this/is/dynamic/with/123rest?ignore=me"
+            url : "/this/is/dynamic/with/123rest?ignore=me",
+            headers: {}
         }
         
         anumargak.lookup(req) ;
@@ -145,7 +129,8 @@ describe("Anumargak wildchar", function() {
         
         var req = {
             method : "GET",
-            url : "/this/is/dynatest/with/?ignore=me"
+            url : "/this/is/dynatest/with/?ignore=me",
+            headers: {}
         }
         
         anumargak.lookup(req) ;
@@ -166,7 +151,8 @@ describe("Anumargak wildchar", function() {
         
         var req = {
             method : "GET",
-            url : "/this/test/is/dynatest/with/?ignore=me"
+            url : "/this/test/is/dynatest/with/?ignore=me",
+            headers: {}
         }
         
         anumargak.lookup(req) ;
@@ -186,7 +172,8 @@ describe("Anumargak wildchar", function() {
         
         var req = {
             method : "GET",
-            url : "/this/is/dyna"
+            url : "/this/is/dyna",
+            headers: {}
         }
         
         anumargak.lookup(req) ;

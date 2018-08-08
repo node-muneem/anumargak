@@ -35,15 +35,18 @@ describe("Anumargak ", function() {
 
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/admin"
+            url: "/login/as/admin",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/user"
+            url: "/login/as/user",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/staff"
+            url: "/login/as/staff",
+            headers: {}
         });
     });
 
@@ -82,41 +85,50 @@ describe("Anumargak ", function() {
 
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/admin/jtoken"
+            url: "/login/as/admin/jtoken",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/user/jtoken"
+            url: "/login/as/user/jtoken",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/staff/jtoken"
-        });
-
-        anumargak.lookup({
-            method : "GET", 
-            url: "/login/as/admin/bare"
-        });
-        anumargak.lookup({
-            method : "GET", 
-            url: "/login/as/user/bare"
-        });
-        anumargak.lookup({
-            method : "GET", 
-            url: "/login/as/staff/bare"
+            url: "/login/as/staff/jtoken",
+            headers: {}
         });
 
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/admin/auth2"
+            url: "/login/as/admin/bare",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/user/auth2"
+            url: "/login/as/user/bare",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/staff/auth2"
+            url: "/login/as/staff/bare",
+            headers: {}
+        });
+
+        anumargak.lookup({
+            method : "GET", 
+            url: "/login/as/admin/auth2",
+            headers: {}
+        });
+        anumargak.lookup({
+            method : "GET", 
+            url: "/login/as/user/auth2",
+            headers: {}
+        });
+        anumargak.lookup({
+            method : "GET", 
+            url: "/login/as/staff/auth2",
+            headers: {}
         });
 
     });
@@ -153,28 +165,34 @@ describe("Anumargak ", function() {
 
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/admin/baretoken"
+            url: "/login/as/admin/baretoken",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/user/baretoken"
+            url: "/login/as/user/baretoken",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/staff/baretoken"
+            url: "/login/as/staff/baretoken",
+            headers: {}
         });
 
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/admin/jtoken"
+            url: "/login/as/admin/jtoken",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/user/jtoken"
+            url: "/login/as/user/jtoken",
+            headers: {}
         });
         anumargak.lookup({
             method : "GET", 
-            url: "/login/as/staff/jtoken"
+            url: "/login/as/staff/jtoken",
+            headers: {}
         });
     });
 });

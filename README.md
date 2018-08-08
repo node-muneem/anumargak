@@ -31,7 +31,8 @@ Fastest HTTP Router
 * Add similar but not same URLs
   * `\this\is\:age([0-9]+)` and `\this\is\:name([a-zA-Z]+)`
 * Support of shorthand methods
-* You can always have a count on registered routes
+* You can always have a count on registered routes.
+* Supports versioned routes
 
 ## Usage
 
@@ -40,7 +41,6 @@ const router = require('anumargak')({
   defaultRoute : defaultHandler,
   ignoreTrailingSlash: true,
   ignoreLeadingSlash: true,
-  overwriteAllow : true
 });
 
 anumargak.on("GET", "/this/is/static", handler);
@@ -144,18 +144,46 @@ Example routes
 
 Adding them make this router simple to use.
 
+## accept-version
+
+Same routes can be registerd with different versions. Lookup method reads `accept-version` header to read the version or you can pass the version in find method directly.
+
+
+```JavaScript
+router.on('GET', '/some/route', { version: '1.2.0' }, (req, res, params) => {
+  //..
+})
+
+router.get( '/some/route', { version: '1.2.3' }, (req, res, params) => {
+  //..
+})
+
+router.find('GET', '/some/route', "1.2.3");
+router.lookup(req, res);
+```
+Note that
+
+* A route can be registered with and without version. In this case, if the `accept-version` header presents then versioned route handler will be returned.
+* Value of `accept-version` header can be : "1.2.0", "1.2.x", "1.x", "*"
 
 ## Benchmark
-|method | url type  | anumargak (अनुमार्गक) | find-my-way|
+
+| Method | URL type | अनुमार्गक (Anumargak) v1.7.0| Find My Way v1.15.1 |
 |------|------|------|------|
-| find | static | 27445088.79 | 3130047.682 |
-| find | dynamic | 2677420.545 | 1243596.976 |
-| find | dynamic with query | 1735442.647 | 1225523.327 |
-| find | enum | 25881565.6 | 1416613.461 |
-| lookup | static | 29077013.86 | 2400789.425 |
-| lookup | dynamic | 2030403.951 | 1101769.543 |
-| lookup | dynamic with query | 1419140.375 | 974787.2642 |
-| lookup | enum | 15906062.45 | 1191961.68 |
+| Find |static|24369856.07|2614866.631 |
+| Find |dynamic|2405576.122|1106656.051 |
+| Find |dynamic + query param|1665114.806|1082533.894 |
+| Find |Enum|23151436.16|1298019.289 |
+| Find |wildchar|2591342.638|1630995.248 |
+| Find |versioned static|1958139.854|263611.4248 |
+| Find |versioned Dynamic|465584.9696|315857.0792 |
+| Look |static|23614465.42|2201314.59 |
+| Look |dynamic|2032592.029|940862.1238 |
+| Look |dynamic + query param|1403264.652|923533.114 |
+| Look |Enum|12662923.03|1066446.935 |
+| Look |wildchar|2251611.449|1335382.238 |
+| Look |versioned static|1313886.055|0 |
+| Look |versioned Dynamic|392754.437|252312.1124 |
 
 *Note* : Above benchmark has been taken on 16gb RAM ubuntu 17.10 machine with node v9.5.0 and npm v5.6.0
 
@@ -165,13 +193,12 @@ Adding them make this router simple to use.
 
 ### Worth to mention
 
-- **[NIMN निम्न](https://github.com/nimndata/spec)** : Schema aware object compression. 60% more compressed than JSON. 40% more compressed than msgpack.
-- **[imglab](https://github.com/NaturalIntelligence/imglab)** : Web based tool to label images for object detection. Use it to train dlib or other object detectors. Integrated with 3rd party libraries to speed up tp process and to make you lazy.
+- **[निम्न (NIMN)](https://github.com/nimndata/spec)** : Save up to 85% network bandwidth and storage space.
+- **[imglab](https://github.com/NaturalIntelligence/imglab)** : Speedup and simplify image labeling / annotation process online. Supports multiple formats, one click annotation, easy interface and much more.
 - [fast-lorem-ipsum](https://github.com/amitguptagwl/fast-lorem-ipsum) : Generate lorem ipsum words, sentences, paragraph very quickly. Pure JS implementation.
-- [stubmatic](https://github.com/NaturalIntelligence/Stubmatic) : A stub server to mock behaviour of HTTP(s) / REST / SOAP services. You can easily mock msgpack, and nimn data formats as well.
-- [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser/) : Pure JS implementation to parse XML to JSON, JS Object, or Nimn format. Parse back from JSON, JS Object to XML. Or just validate XML syntax.
-- [Grapes](https://github.com/amitguptagwl/grapes) : Flexible Regular expression engine (for java) which can be applied on char stream. (under development)
-- [Muneem (मुनीम)](https://github.com/muneem4node/muneem): A framework to write fast web services in easy way. Designed specially for developers, QAs, Maintainers, and BAs.
+- [stubmatic](https://github.com/NaturalIntelligence/Stubmatic) : A stub server to mock behaviour of HTTP(s) / REST / SOAP services. You can also mock binary formats.
+- [मुनीम (Muneem)](https://github.com/muneem4node/muneem) : A webframework made for all team members.
+- [शब्दावली (shabdawali)](https://github.com/amitguptagwl/shabdawali) : Amazing human like typing effects beyond your imagination. Check [वार्ता](https://github.com/amitguptagwl/vaarta) for talking/chatting effect.
 
 
 ## Contributors
