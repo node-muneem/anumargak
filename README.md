@@ -56,7 +56,8 @@ anumargak.on("GET", "/similar/:string([a-z]{10})", handler);
 anumargak.on("GET", "/similar/:number([0-9]{10})", handler);//above route is different from this
 
 
-anumargak.find("GET","/this/is/static");//will return { handler: fn, store: extraData}
+anumargak.quickFind("GET","/this/is/static");//will return { handler: fn, store: extraData }
+anumargak.find("GET","/this/is/static");//will return { handler: fn, store: extraData, params: params}
 anumargak.find("GET","/this/is/dynamic/with/123?ignore=me");//ignore query parameters and hashtag part automatically
 
 anumargak.lookup(req,res) ;//will execute handler with req,res and params(for dynamic URLs) as method parameters
@@ -112,6 +113,8 @@ router.delete("/this/is/:dynamic", () => 30);
 
 ## Similar but not same URLs
 
+You can register the URLs which look similar but not exactly same.
+
 ```js
 const anumargak = require('anumargak')()
 //this/is/my/75
@@ -119,7 +122,11 @@ anumargak.on("GET", "/this/is/my/:age([0-9]{2,3})", handler);
 
 //this/is/my/amit
 anumargak.on("GET", "/this/is/my/:name([a-zA-z]+)", handler);
+
+anumargak.on("GET", "/login/as/:role(admin|user|staff)", handler);
+anumargak.on("GET", "/login/as/:role(developer|tester|hacker)", handler);
 ```
+
 
 ## Named Expressions
 

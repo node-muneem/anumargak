@@ -24,10 +24,10 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
     }
 
     if (typeof method === "string") {
-        this.normalizeUrl(method, url, options, fn, extraData);
+        this._on(method, url, options, fn, extraData);
     } else if (Array.isArray(method)) {
         for (var i = 0; i < method.length; i++) {
-            this.normalizeUrl(method[i], url, options, fn, extraData);
+            this._on(method[i], url, options, fn, extraData);
         }
     } else {
         throw Error("Invalid method argument. String or array is expected.");
@@ -41,12 +41,19 @@ var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
 
-Anumargak.prototype.normalizeUrl = function (method, url, options, fn, extraData) {
+
+Anumargak.prototype._on = function (method, url, options, fn, extraData) {
     
     //validate for correct input
     if (httpMethods.indexOf(method) === -1) throw Error("Invalid method type " + method);
     this.count += 1;
 
+    url = this.normalizeUrl(url);
+
+    this._addRoute(method, url, options, fn, extraData);
+}
+
+Anumargak.prototype.normalizeUrl = function (url) {
     //Normalize URL
     if (this.ignoreLeadingSlash) {
         if (url.startsWith("/") === false) {
@@ -61,7 +68,7 @@ Anumargak.prototype.normalizeUrl = function (method, url, options, fn, extraData
         url = url.substr(0, matches.index + 1) + ":*(" + matches[0].substr(1, matches[0].length - 2) + ".*)"
     }
 
-    this._addRoute(method, url, options, fn, extraData);
+    return url;
 }
 
 /*
@@ -142,6 +149,26 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
 }
 
 Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params, matches){
+    var normalizedUrl = normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash);
+    url = normalizedUrl.url;
+    
+
+    var regex = new RegExp("^" + url + "$");
+    this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
+
+    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, fn);
+    
+    this.dynamicRoutes[method][url] = { 
+        fn: routeHandlers.handler,
+        regex: regex, 
+        verMap: routeHandlers.verMap, 
+        params: params || {}, 
+        paramsArr: normalizedUrl.paramsArr ,
+        store: extraData
+    };    
+}
+
+var normalizeDynamicUrl = function (url, matches, ignoreTrailingSlash ) {
     var paramsArr = [];
     for (var i = 0; i < matches.length; i++) {
         var name = matches[i][1];
@@ -161,29 +188,19 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
         
     }
 
-    if (this.ignoreTrailingSlash) {
+    if ( ignoreTrailingSlash) {
         if (url.endsWith("/")) {
             url = url + "?";
         } else {
             url = url + "/?";
         }
     }
-    var regex = new RegExp("^" + url + "$");
-    this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
 
-    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, fn);
-    
-    this.dynamicRoutes[method][url] = { 
-        fn: routeHandlers.handler,
-        regex: regex, 
-        verMap: routeHandlers.verMap, 
-        params: params || {}, 
-        paramsArr: paramsArr ,
-        store: extraData
-    };    
+    return {
+        paramsArr : paramsArr,
+        url : url
+    };
 }
-
-
 
 Anumargak.prototype.getRouteHandlers = function (route, method, url, options, fn) {
     if(options.version){
@@ -269,7 +286,7 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 }
 
 
-Anumargak.prototype.find = function (method, url, version) {
+Anumargak.prototype.quickFind = function (method, url, version) {
     url = urlSlice(url);
     var result = this.staticRoutes[method][url];
     if (result) {
@@ -293,25 +310,21 @@ Anumargak.prototype.find = function (method, url, version) {
     return null;
 }
 
+Anumargak.prototype.lookup = function (req, res) {
+    var method = req.method;
+    
+    var version = req.headers['accept-version'];
 
-Anumargak.prototype.getHandler = function (route, version) {
-    if(version){
-        return route.verMap.get(version);
+    var result = this.find(method, req.url, version);
+    if(result === null){
+        this.defaultFn(req, res);
     }else{
-        return route.fn;
+        result.handler(req, res, result.params);
     }
 }
 
-Anumargak.prototype.lookup = function (req, res) {
-    var method = req.method;
-    var url = urlSlice(req.url);
-    var version = req.headers['accept-version'];
-
-    var result = this._lookup(url, method, version);
-    result.handler(req, res, result.params);
-}
-
-Anumargak.prototype._lookup = function (url, method, version) {
+Anumargak.prototype.find = function (method, url, version) {
+    url = urlSlice(url);
     var result = this.staticRoutes[method][url];
     if (result) {
         return { 
@@ -339,7 +352,19 @@ Anumargak.prototype._lookup = function (url, method, version) {
             }
         }
     }
-    return { handler: this.defaultFn};
+    return null;
+}
+
+Anumargak.prototype.getHandler = function (route, version) {
+    if(version){
+        return route.verMap.get(version);
+    }else{
+        return route.fn;
+    }
+}
+
+Anumargak.prototype.off = function (method, url, version) {
+
 }
 
 /**
