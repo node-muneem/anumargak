@@ -10,10 +10,10 @@ describe("Anumargak wildchar", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/url")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/*")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/")()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic/url").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/*").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/").handler()).toEqual(30);
     });
 
     it("FIND: should capture rest url when /*some/", function() {
@@ -24,10 +24,10 @@ describe("Anumargak wildchar", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/url")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/*")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/")()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic/url").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/*").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/").handler()).toEqual(30);
     });
 
     it("FIND: should capture rest url when /some*/", function() {
@@ -38,10 +38,10 @@ describe("Anumargak wildchar", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/url")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/*")).toEqual(undefined);
-        expect(anumargak.find("GET","/this/is/")).toEqual(undefined);
+        expect(anumargak.find("GET","/this/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic/url").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/*")).toEqual(null);
+        expect(anumargak.find("GET","/this/is/")).toEqual(null);
     });
 
     it("FIND: should capture rest url when /some*/", function() {
@@ -52,10 +52,10 @@ describe("Anumargak wildchar", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/dynamic/url")()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/*")).toEqual(undefined);
-        expect(anumargak.find("GET","/this/is/")).toEqual(undefined);
+        expect(anumargak.find("GET","/this/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/dynamic/url").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/is/*")).toEqual(null);
+        expect(anumargak.find("GET","/this/is/")).toEqual(null);
     });
 
     it("FIND: should capture rest url when there is already a parameter ahead", function() {
@@ -66,10 +66,10 @@ describe("Anumargak wildchar", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1);
 
-        expect(anumargak.find("GET","/this/test/is/dynamic")()).toEqual(30);
-        expect(anumargak.find("GET","/this/test/is/dynamic/url")()).toEqual(30);
-        expect(anumargak.find("GET","/this/test/is/*")()).toEqual(30);
-        expect(anumargak.find("GET","/this/test/is/")()).toEqual(30);
+        expect(anumargak.find("GET","/this/test/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/test/is/dynamic/url").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/test/is/*").handler()).toEqual(30);
+        expect(anumargak.find("GET","/this/test/is/").handler()).toEqual(30);
     });
 
     it("LOOKUP: should capture rest url when /some*/", function(done) {

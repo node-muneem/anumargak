@@ -15,22 +15,25 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
  * @param {string} url 
  * @param {function} fn 
  */
-Anumargak.prototype.on = function (method, url, options, fn) {
+Anumargak.prototype.on = function (method, url, options, fn, extraData) {
 
     if (typeof options === 'function') {
+        extraData = fn;
         fn = options;
         options = {};
     }
 
     if (typeof method === "string") {
-        this.normalizeUrl(method, url, options, fn);
+        this.normalizeUrl(method, url, options, fn, extraData);
     } else if (Array.isArray(method)) {
         for (var i = 0; i < method.length; i++) {
-            this.normalizeUrl(method[i], url, options, fn);
+            this.normalizeUrl(method[i], url, options, fn, extraData);
         }
     } else {
         throw Error("Invalid method argument. String or array is expected.");
     }
+    
+    return this;
 }
 
 var wildcardRegexStr = "\\/([^\\/:]*)\\*";
@@ -38,7 +41,7 @@ var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
 
-Anumargak.prototype.normalizeUrl = function (method, url, options, fn) {
+Anumargak.prototype.normalizeUrl = function (method, url, options, fn, extraData) {
     
     //validate for correct input
     if (httpMethods.indexOf(method) === -1) throw Error("Invalid method type " + method);
@@ -58,22 +61,22 @@ Anumargak.prototype.normalizeUrl = function (method, url, options, fn) {
         url = url.substr(0, matches.index + 1) + ":*(" + matches[0].substr(1, matches[0].length - 2) + ".*)"
     }
 
-    this._addRoute(method, url, options, fn);
+    this._addRoute(method, url, options, fn, extraData);
 }
 
 /*
 paramas is useful in case of enum url where we know the parameter value in advance.
 */
-Anumargak.prototype._addRoute = function (method, url, options, fn, params) {
+Anumargak.prototype._addRoute = function (method, url, options, fn, extraData, params) {
 
-    var found = this._checkForEnum(method, url, options, fn, params);
+    var found = this._checkForEnum(method, url, options, fn, extraData, params);
     if(found) return;
 
     var matches = getAllMatches(url, paramRegexStr);
     if (matches.length > 0) {//DYNAMIC
-        this._addDynamic(method, url, options, fn, params, matches);
+        this._addDynamic(method, url, options, fn, extraData, params, matches);
     } else {//STATIC
-        this._addStatic(method, url, options, fn, params, this.ignoreTrailingSlash);
+        this._addStatic(method, url, options, fn, extraData, params, this.ignoreTrailingSlash);
     }
 }
 
@@ -85,7 +88,7 @@ Anumargak.prototype._addRoute = function (method, url, options, fn, params) {
  * @param {function} fn 
  * @param {object} params 
  */
-Anumargak.prototype._checkForEnum = function(method, url, options, fn, params){
+Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData, params){
     var matches = getFirstMatche(url, enumRegexStr);
     if (matches) {
         var name = matches[1];
@@ -101,20 +104,21 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, params){
                 params = {};
                 params[name] = arr[i];
             }
-            this._addRoute(method, newurl, options, fn, params);
+            this._addRoute(method, newurl, options, fn, extraData, params);
         }
         return true;
     }
 }
 
-Anumargak.prototype._addStatic = function(method, url, options, fn, params, ignoreTrailingSlash){
+Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params, ignoreTrailingSlash){
     this.checkIfRegistered(this.staticRoutes, method, url, options, fn);
 
-    var routeData = this.getRouteData(this.staticRoutes[method][url], method, url, options, fn);
+    var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
     this.staticRoutes[method][url] = { 
-        fn : routeData.handler,
-        verMap: routeData.verMap, 
-        params: params 
+        fn : routeHandlers.handler,
+        verMap: routeHandlers.verMap, 
+        params: params,
+        store: extraData
     };
 
     //this.staticRoutes[method][url] = { fn: fn, params: params };
@@ -125,18 +129,19 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, params, igno
             url = url + "/";
         }
         
-        var routeData = this.getRouteData(this.staticRoutes[method][url], method, url, options, fn);
+        var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
         this.staticRoutes[method][url] = { 
-            fn : routeData.handler,
-            verMap: routeData.verMap, 
-            params: params 
+            fn : routeHandlers.handler,
+            verMap: routeHandlers.verMap, 
+            params: params,
+            store: extraData
         };
 
     }
 
 }
 
-Anumargak.prototype._addDynamic = function(method, url, options, fn, params, matches){
+Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params, matches){
     var paramsArr = [];
     for (var i = 0; i < matches.length; i++) {
         var name = matches[i][1];
@@ -166,20 +171,21 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, params, mat
     var regex = new RegExp("^" + url + "$");
     this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
 
-    var routeData = this.getRouteData(this.dynamicRoutes[method][url], method, url, options, fn);
+    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, fn);
     
     this.dynamicRoutes[method][url] = { 
-        fn: routeData.handler,
+        fn: routeHandlers.handler,
         regex: regex, 
-        verMap: routeData.verMap, 
+        verMap: routeHandlers.verMap, 
         params: params || {}, 
-        paramsArr: paramsArr 
+        paramsArr: paramsArr ,
+        store: extraData
     };    
 }
 
 
 
-Anumargak.prototype.getRouteData = function (route, method, url, options, fn) {
+Anumargak.prototype.getRouteHandlers = function (route, method, url, options, fn) {
     if(options.version){
         var verMap, handler;
         if( route ){
@@ -266,15 +272,25 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 Anumargak.prototype.find = function (method, url, version) {
     url = urlSlice(url);
     var result = this.staticRoutes[method][url];
-    if (result) return this.getHandler(result, version);
-    else {
+    if (result) {
+        return {
+            handler: this.getHandler(result, version),
+            store : result.store
+        }
+    }else {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
-            if (this.dynamicRoutes[method][urlRegex[i]].regex.exec(url))
-                return this.getHandler( this.dynamicRoutes[method][ urlRegex[i] ], version);
+            if (this.dynamicRoutes[method][urlRegex[i]].regex.exec(url)){
+                var result = this.dynamicRoutes[method][ urlRegex[i] ];
+                return {
+                        handler: this.getHandler( result, version),
+                        //params: result.params,
+                        store:    result.store
+                    }
+            }
         }
     }
-    return this.defaultFn;
+    return null;
 }
 
 
@@ -292,13 +308,18 @@ Anumargak.prototype.lookup = function (req, res) {
     var version = req.headers['accept-version'];
 
     var result = this._lookup(url, method, version);
-    result.fn(req, res, result.params);
+    result.handler(req, res, result.params);
 }
 
 Anumargak.prototype._lookup = function (url, method, version) {
     var result = this.staticRoutes[method][url];
-    if (result) return { fn: this.getHandler(result, version), params: result.params };
-    else {
+    if (result) {
+        return { 
+            handler: this.getHandler(result, version), 
+            params: result.params,
+            store: result.store
+        };
+    }else {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
             var route = this.dynamicRoutes[method][urlRegex[i]];
@@ -308,11 +329,17 @@ Anumargak.prototype._lookup = function (url, method, version) {
                 for (var m_i = 1; m_i < matches.length; m_i++) {
                     params[route.paramsArr[m_i - 1]] = matches[m_i];
                 }
-                return { fn: this.getHandler(this.dynamicRoutes[method][urlRegex[i]], version), params: params };
+
+                var result = this.dynamicRoutes[method][urlRegex[i]];
+                return { 
+                    handler: this.getHandler(result, version),
+                    params: params,
+                    store: result.store 
+                };
             }
         }
     }
-    return { fn: this.defaultFn };
+    return { handler: this.defaultFn};
 }
 
 /**
@@ -403,6 +430,8 @@ function Anumargak(options) {
     if (options) {
         if (options.defaultRoute) {
             this.defaultFn = options.defaultRoute;
+        }else{
+            this.defaultFn = defaultRoute;
         }
         this.ignoreTrailingSlash = options.ignoreTrailingSlash || false;
         this.ignoreLeadingSlash = options.ignoreLeadingSlash || true;
@@ -410,4 +439,8 @@ function Anumargak(options) {
     }
 }
 
+function defaultRoute(req, res) {
+    res.statusCode = 404
+    res.end()
+}
 module.exports = Anumargak;

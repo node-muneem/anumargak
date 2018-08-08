@@ -7,9 +7,9 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/login/as/:role(admin|user|staff)", () => 30);
 
         expect(anumargak.count).toEqual(1);
-        expect(anumargak.find("GET","/login/as/admin")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff")()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/admin").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/user").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/staff").handler()).toEqual(30);
 
         expect(anumargak.staticRoutes.GET["/login/as/admin"].fn()).toEqual(30);
         expect(anumargak.staticRoutes.GET["/login/as/admin"].params).toEqual({ role : "admin"});
@@ -56,17 +56,17 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/login/as/:role(admin|user|staff)/:method(jtoken|bare|auth2)", () => 30);
 
         expect(anumargak.count).toEqual(1);
-        expect(anumargak.find("GET","/login/as/admin/jtoken")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user/jtoken")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff/jtoken")()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/admin/jtoken").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/user/jtoken").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/staff/jtoken").handler()).toEqual(30);
 
-        expect(anumargak.find("GET","/login/as/admin/bare")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user/bare")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff/bare")()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/admin/bare").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/user/bare").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/staff/bare").handler()).toEqual(30);
 
-        expect(anumargak.find("GET","/login/as/admin/auth2")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user/auth2")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff/auth2")()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/admin/auth2").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/user/auth2").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/staff/auth2").handler()).toEqual(30);
 
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(0);
 
@@ -139,13 +139,13 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/login/as/:role(admin|user|staff)/:method([a-z]+)", () => 30);
 
         expect(anumargak.count).toEqual(1);
-        expect(anumargak.find("GET","/login/as/admin/jtoken")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user/jtoken")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff/jtoken")()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/admin/jtoken").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/user/jtoken").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/staff/jtoken").handler()).toEqual(30);
 
-        expect(anumargak.find("GET","/login/as/admin/bare")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user/bare")()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff/bare")()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/admin/bare").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/user/bare").handler()).toEqual(30);
+        expect(anumargak.find("GET","/login/as/staff/bare").handler()).toEqual(30);
 
         expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(3);

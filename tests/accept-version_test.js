@@ -13,14 +13,14 @@ describe("Anumargak ", function () {
         expect( Object.keys(router.staticRoutes.GET).length ).toEqual(2);
         expect( router.count).toEqual(5);
 
-        expect( router.find("GET", "/this/is/static")()).toEqual(5);
-        expect( router.find("GET", "/this/is/versioned")()).toEqual(10);
-        expect( router.find("GET", "/this/is/versioned", "1.2.0")()).toEqual(30);
-        expect( router.find("GET", "/this/is/versioned", "1.2.3")()).toEqual(40);
-        expect( router.find("GET", "/this/is/versioned", "2.4.0")()).toEqual(50);
-        expect( router.find("GET", "/this/is/versioned", "1.2.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/versioned", "1.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/versioned", "*")()).toEqual(50);
+        expect( router.find("GET", "/this/is/static").handler()).toEqual(5);
+        expect( router.find("GET", "/this/is/versioned").handler()).toEqual(10);
+        expect( router.find("GET", "/this/is/versioned", "1.2.0").handler()).toEqual(30);
+        expect( router.find("GET", "/this/is/versioned", "1.2.3").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/versioned", "2.4.0").handler()).toEqual(50);
+        expect( router.find("GET", "/this/is/versioned", "1.2.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/versioned", "1.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/versioned", "*").handler()).toEqual(50);
     });
 
     it("FIND: should find versioned enumerated url", function () {
@@ -36,22 +36,22 @@ describe("Anumargak ", function () {
         expect( Object.keys(router.dynamicRoutes.GET).length ).toEqual(0);
         expect( router.count).toEqual(5);
 
-        expect( router.find("GET", "/this/is/static")()).toEqual(5);
-        expect( router.find("GET", "/this/is/admin")()).toEqual(10);
-        expect( router.find("GET", "/this/is/admin", "1.2.0")()).toEqual(30);
-        expect( router.find("GET", "/this/is/admin", "1.2.3")()).toEqual(40);
-        expect( router.find("GET", "/this/is/admin", "2.4.0")()).toEqual(50);
-        expect( router.find("GET", "/this/is/admin", "1.2.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/admin", "1.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/admin", "*")()).toEqual(50);
+        expect( router.find("GET", "/this/is/static").handler()).toEqual(5);
+        expect( router.find("GET", "/this/is/admin").handler()).toEqual(10);
+        expect( router.find("GET", "/this/is/admin", "1.2.0").handler()).toEqual(30);
+        expect( router.find("GET", "/this/is/admin", "1.2.3").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/admin", "2.4.0").handler()).toEqual(50);
+        expect( router.find("GET", "/this/is/admin", "1.2.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/admin", "1.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/admin", "*").handler()).toEqual(50);
 
-        expect( router.find("GET", "/this/is/staff")()).toEqual(10);
-        expect( router.find("GET", "/this/is/staff", "1.2.0")()).toEqual(30);
-        expect( router.find("GET", "/this/is/staff", "1.2.3")()).toEqual(40);
-        expect( router.find("GET", "/this/is/staff", "2.4.0")()).toEqual(50);
-        expect( router.find("GET", "/this/is/staff", "1.2.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/staff", "1.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/staff", "*")()).toEqual(50);
+        expect( router.find("GET", "/this/is/staff").handler()).toEqual(10);
+        expect( router.find("GET", "/this/is/staff", "1.2.0").handler()).toEqual(30);
+        expect( router.find("GET", "/this/is/staff", "1.2.3").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/staff", "2.4.0").handler()).toEqual(50);
+        expect( router.find("GET", "/this/is/staff", "1.2.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/staff", "1.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/staff", "*").handler()).toEqual(50);
     });
 
 
@@ -68,22 +68,22 @@ describe("Anumargak ", function () {
         expect( Object.keys(router.dynamicRoutes.GET).length ).toEqual(1);
         expect( router.count).toEqual(5);
 
-        expect( router.find("GET", "/this/is/static")()).toEqual(5);
-        expect( router.find("GET", "/this/is/admin")()).toEqual(10);
-        expect( router.find("GET", "/this/is/admin", "1.2.0")()).toEqual(30);
-        expect( router.find("GET", "/this/is/admin", "1.2.3")()).toEqual(40);
-        expect( router.find("GET", "/this/is/admin", "2.4.0")()).toEqual(50);
-        expect( router.find("GET", "/this/is/admin", "1.2.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/admin", "1.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/admin", "*")()).toEqual(50);
+        expect( router.find("GET", "/this/is/static").handler()).toEqual(5);
+        expect( router.find("GET", "/this/is/admin").handler()).toEqual(10);
+        expect( router.find("GET", "/this/is/admin", "1.2.0").handler()).toEqual(30);
+        expect( router.find("GET", "/this/is/admin", "1.2.3").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/admin", "2.4.0").handler()).toEqual(50);
+        expect( router.find("GET", "/this/is/admin", "1.2.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/admin", "1.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/admin", "*").handler()).toEqual(50);
 
-        expect( router.find("GET", "/this/is/staff")()).toEqual(10);
-        expect( router.find("GET", "/this/is/staff", "1.2.0")()).toEqual(30);
-        expect( router.find("GET", "/this/is/staff", "1.2.3")()).toEqual(40);
-        expect( router.find("GET", "/this/is/staff", "2.4.0")()).toEqual(50);
-        expect( router.find("GET", "/this/is/staff", "1.2.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/staff", "1.x")()).toEqual(40);
-        expect( router.find("GET", "/this/is/staff", "*")()).toEqual(50);
+        expect( router.find("GET", "/this/is/staff").handler()).toEqual(10);
+        expect( router.find("GET", "/this/is/staff", "1.2.0").handler()).toEqual(30);
+        expect( router.find("GET", "/this/is/staff", "1.2.3").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/staff", "2.4.0").handler()).toEqual(50);
+        expect( router.find("GET", "/this/is/staff", "1.2.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/staff", "1.x").handler()).toEqual(40);
+        expect( router.find("GET", "/this/is/staff", "*").handler()).toEqual(50);
     });
 
     it("LOOK: should look versioned static url", function () {

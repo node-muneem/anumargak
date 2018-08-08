@@ -56,7 +56,7 @@ anumargak.on("GET", "/similar/:string([a-z]{10})", handler);
 anumargak.on("GET", "/similar/:number([0-9]{10})", handler);//above route is different from this
 
 
-anumargak.find("GET","/this/is/static");//will return handler
+anumargak.find("GET","/this/is/static");//will return { handler: fn, store: extraData}
 anumargak.find("GET","/this/is/dynamic/with/123?ignore=me");//ignore query parameters and hashtag part automatically
 
 anumargak.lookup(req,res) ;//will execute handler with req,res and params(for dynamic URLs) as method parameters
@@ -205,3 +205,7 @@ Note that
 - <img src="https://avatars2.githubusercontent.com/u/7692328?v=4" width="20" height="20"/> [amitguptagwl](https://github.com/amitguptagwl)
 - <img src="https://avatars2.githubusercontent.com/u/10572008?v=4" width="20" height="20"/> [rajeshdh](https://github.com/rajeshdh)
 - <img src="https://avatars3.githubusercontent.com/u/4491530?v=4" width="20" height="20"/> [shuklajay117](https://github.com/shuklajay117)
+
+## Disclaimer
+
+I initially used *find-my-way* npm package for [मुनीम (Muneem)](https://github.com/muneem4node/muneem) framework. But then I realized that lookup for static URLs is comparitively slower. Hence I develop this library. If you notice, I tried to keep the naming convention and syntaxes common wherever possible to reduce the time to switch from one library to another and to keep learning curve smaller.
