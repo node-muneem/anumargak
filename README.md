@@ -16,30 +16,27 @@ Fastest HTTP Router
 ## Features
 
 * Fastest node js router (as far as Google & I know)
-* Framework independent
-* Supports static and  dynamic both type of URLs
+* Framework independent.
+* Supports static and  dynamic both type of URLs.
 * Supports path parameter with defined type `\this\is\:num([0-9]+)`
-* Support multiple path parameters
+* Support multiple path parameters.
 * Handles enumerated URLs `\login\as\:role(admin|staff|user)`
 * Supports wildchar `\this\is\*`, `\this\is\wild*`
-* You nee not to register 2 separate routes for trailing slash. `\like\me\` and `\like\me`.
+* You need not to register 2 separate routes for trailing slash. `\like\me\` and `\like\me`.
+* You may skip leading slash while registering the route, though not recommended. `\like\me` and `like\me`.
 * Capture parameters' value for dynamic URLs.
-* Warn (by default) or silently overwrites (when `overwriteAllow : true`) same or similar URLs
-  * `\this\is\static` and `\this\is\static`
-  * `\this\:param\is\dynamic` and `\this\param\:is\dynamic`
-  * `\this\is\:uid([a-zA-Z0-9]+)` and `\this\is\:num([0-9]+)`
-* Add similar but not same URLs
-  * `\this\is\:age([0-9]+)` and `\this\is\:name([a-zA-Z]+)`
-* Support of shorthand methods
+* Add similar but not same URLs : `\this\is\:age([0-9]+)` and `\this\is\:name([a-zA-Z]+)`
+* Support shorthand methods
 * You can always have a count on registered routes.
-* Supports versioned routes
+* Supports versioned routes.
+* You can name regular expressions to increase code redability.
 
 ## Usage
 
 ```js
 const http = require('http')
 const router = require('anumargak')({
-  defaultRoute : defaultHandler,
+  defaultRoute : defaultHandler,//it'll be called when no route matches. If it is not set the we'll set statusCode to 404
   ignoreTrailingSlash: true,
   ignoreLeadingSlash: true,
 })
