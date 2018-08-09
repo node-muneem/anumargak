@@ -1,6 +1,6 @@
 var { getFirstMatche, getAllMatches, doesMatch, urlSlice } = require("./util");
 var namedExpressionsStore = require("./namedExpressionsStore");
-var semverStore = require("semver-store");
+var semverStore = require("./semver-store");
 
 var httpMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT", "COPY", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
 
@@ -76,14 +76,16 @@ paramas is useful in case of enum url where we know the parameter value in advan
 */
 Anumargak.prototype._addRoute = function (method, url, options, fn, extraData, params) {
 
-    var found = this._checkForEnum(method, url, options, fn, extraData, params);
-    if(found) return;
-
-    var matches = getAllMatches(url, paramRegexStr);
-    if (matches.length > 0) {//DYNAMIC
-        this._addDynamic(method, url, options, fn, extraData, params, matches);
-    } else {//STATIC
-        this._addStatic(method, url, options, fn, extraData, params, this.ignoreTrailingSlash);
+    var done = this._checkForEnum(method, url, options, fn, extraData, params);
+    if( done ) { //All the enumerated URLs are registered
+        return;
+    }else{
+        var matches = getAllMatches(url, paramRegexStr);
+        if (matches.length > 0) {//DYNAMIC
+            this._addDynamic(method, url, options, fn, extraData, params, matches);
+        } else {//STATIC
+            this._addStatic(method, url, options, fn, extraData, params, this.ignoreTrailingSlash);
+        }
     }
 }
 
@@ -152,12 +154,10 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
     var normalizedUrl = normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash);
     url = normalizedUrl.url;
     
-
-    var regex = new RegExp("^" + url + "$");
     this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
-
     var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, fn);
     
+    var regex = new RegExp("^" + url + "$");
     this.dynamicRoutes[method][url] = { 
         fn: routeHandlers.handler,
         regex: regex, 
@@ -364,7 +364,67 @@ Anumargak.prototype.getHandler = function (route, version) {
 }
 
 Anumargak.prototype.off = function (method, url, version) {
+    url = this.normalizeUrl(url);
 
+    var done = this.removeEnum(method, url);
+    if(done) return;
+
+    var matches = getAllMatches(url, paramRegexStr);
+    var result;
+    if (matches.length > 0) {//DYNAMIC
+        url = normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash).url;
+        result = this.isRegistered(this.dynamicRoutes, method, url);
+    } else {//STATIC
+        result = this.isRegistered(this.staticRoutes, method, url);
+    }
+
+    if (result) {
+        if(version ){
+            var route;
+            if( this.dynamicRoutes[method][result] ){
+                route = this.dynamicRoutes[method][result];
+            }else {
+                route = this.staticRoutes[method][result];
+            }
+
+            if(route.verMap && route.verMap.get( version )){
+                var delCount = route.verMap.delete( version );
+                this.count -= delCount;
+            }
+        }else{
+            if( this.dynamicRoutes[method][result] ){
+                if( this.dynamicRoutes[method][result].verMap ){
+                    this.count -= this.dynamicRoutes[method][result].verMap.count();
+                }
+                delete this.dynamicRoutes[method][result];
+                this.count--;
+            }else {
+                if( this.staticRoutes[method][result].verMap ){
+                    this.count -= this.staticRoutes[method][result].verMap.count();
+                }
+                delete this.staticRoutes[method][result];
+                this.count--;
+            }
+        }
+    }
+
+}
+
+Anumargak.prototype.removeEnum = function(method, url){
+    var matches = getFirstMatche(url, enumRegexStr);
+    if (matches) {
+        var name = matches[1];
+        var pattern = matches[3];
+
+        var arr = pattern.split("\|");
+        for (var i = 0; i < arr.length; i++) {
+            var newurl = url.replace(matches[0], arr[i]);
+            this.off(method, newurl);
+            this.count++;
+        }
+        this.count--;
+        return true ;
+    }
 }
 
 /**
