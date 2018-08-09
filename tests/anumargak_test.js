@@ -12,8 +12,8 @@ describe("Anumargak ", function () {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET", "/this/is/static").handler()).toEqual(30);
-        expect(anumargak.find("HEAD", "/this/is/static").handler()).toEqual(30);
+        expect(anumargak.quickFind("GET", "/this/is/static").handler()).toEqual(30);
+        expect(anumargak.quickFind("HEAD", "/this/is/static").handler()).toEqual(30);
     });
 
     it("should register for multiple methods", function () {
@@ -25,8 +25,8 @@ describe("Anumargak ", function () {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET", "/this/is/static").handler()).toEqual(30);
-        expect(anumargak.find("HEAD", "/this/is/static").handler()).toEqual(30);
+        expect(anumargak.quickFind("GET", "/this/is/static").handler()).toEqual(30);
+        expect(anumargak.quickFind("HEAD", "/this/is/static").handler()).toEqual(30);
     });
 
     it("should error when invalid method type is given", function () {
@@ -72,8 +72,8 @@ describe("Anumargak ", function () {
         expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET", "/this/is/dynamic").handler()).toEqual(30);
-        expect(anumargak.find("HEAD", "/this/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.quickFind("GET", "/this/is/dynamic").handler()).toEqual(30);
+        expect(anumargak.quickFind("HEAD", "/this/is/dynamic").handler()).toEqual(30);
     });
 
     it("should set multiple urls under the same route ", function () {
@@ -292,7 +292,7 @@ describe("Anumargak ", function () {
 
         anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
 
-        expect( anumargak.find("GET", "/this/is/not/matching") ).toEqual( null );
+        expect( anumargak.quickFind("GET", "/this/is/not/matching") ).toEqual( null );
     });
 
     it("should run default route", function (done) {

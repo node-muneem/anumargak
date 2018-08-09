@@ -41,5 +41,10 @@
   "dependencies": {
     "randexp": "^0.4.9",
     "semver-store": "^0.3.0"
+  },
+  "nyc": {
+    "exclude": [
+      "tests", "build"
+    ]
   }
 }

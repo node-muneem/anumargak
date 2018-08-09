@@ -138,6 +138,48 @@ describe("Anumargak remove route", function() {
 
     });
 
+
+    it("should remove dynamic versioned URLs", function() {
+        var anumargak = Anumargak();
+
+        anumargak.on("GET", "/this/is/:versioned", () => 10 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '1.2.0' }, () => 30 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '1.2.1' }, () => 30 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '1.2.2' }, () => 30 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '1.2.3' }, () => 30 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '1.2.4' }, () => 30 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '1.2.5' }, () => 40 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '2.1.0' }, () => 50 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '2.2.0' }, () => 50 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '2.3.0' }, () => 50 );
+        anumargak.on("GET", "/this/is/:versioned", { version: '2.4.0' }, () => 50 );
+
+        expect( Object.keys(anumargak.staticRoutes.GET).length ).toEqual(0);
+        expect( Object.keys(anumargak.dynamicRoutes.GET).length ).toEqual(1);
+        expect( anumargak.count).toEqual(11);
+        
+        anumargak.off("GET", "/this/is/:versioned", "1.2.x");
+
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(5); 
+
+        anumargak.off("GET", "/this/is/:versioned", "2.1.0");
+
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(4);
+        
+        anumargak.off("GET", "/this/is/:versioned", "2.x");
+
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(1); 
+
+        anumargak.off("GET", "/this/is/:versioned"); //it'll delete all the versions
+
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(0);
+        expect(anumargak.count).toEqual(0); 
+
+    });
+
     it("should remove enumerated URLs", function() {
         var anumargak = Anumargak();
 
