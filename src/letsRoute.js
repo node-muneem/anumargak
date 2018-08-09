@@ -1,9 +1,10 @@
 var { getFirstMatche, getAllMatches, doesMatch, urlSlice } = require("./util");
 var namedExpressionsStore = require("./namedExpressionsStore");
 var semverStore = require("./semver-store");
+var safeRegex = require('safe-regex');
 
-var httpMethods = ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS", "PATCH", "TRACE", "CONNECT", "COPY", "LINK", "UNLINK", "PURGE", "LOCK", "UNLOCK", "PROPFIND", "VIEW"];
-
+var http = require('http')
+var httpMethods = http.METHODS;
 
 Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
     this.namedExpressions.addNamedExpression(arg1, arg2);
@@ -37,19 +38,16 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
 }
 
 var wildcardRegexStr = "\\/([^\\/:]*)\\*";
-var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\(.*?\\))?";
+var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\([^\\/]*\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
 
 
 Anumargak.prototype._on = function (method, url, options, fn, extraData) {
-    
     //validate for correct input
     if (httpMethods.indexOf(method) === -1) throw Error("Invalid method type " + method);
-    this.count += 1;
 
     url = this.normalizeUrl(url);
-
     this._addRoute(method, url, options, fn, extraData);
 }
 
@@ -113,8 +111,10 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData
                 params = {};
                 params[name] = arr[i];
             }
+            this.count--;
             this._addRoute(method, newurl, options, fn, extraData, params);
         }
+        this.count++;
         return true;
     }
 }
@@ -122,6 +122,7 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData
 Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params, ignoreTrailingSlash){
     this.checkIfRegistered(this.staticRoutes, method, url, options, fn);
 
+    this.count++;
     var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
     this.staticRoutes[method][url] = { 
         fn : routeHandlers.handler,
@@ -151,7 +152,7 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
 }
 
 Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params, matches){
-    var normalizedUrl = normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash);
+    var normalizedUrl = this.normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash);
     url = normalizedUrl.url;
     
     this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
@@ -165,10 +166,11 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
         params: params || {}, 
         paramsArr: normalizedUrl.paramsArr ,
         store: extraData
-    };    
+    };  
+    this.count++;  
 }
 
-var normalizeDynamicUrl = function (url, matches, ignoreTrailingSlash ) {
+Anumargak.prototype.normalizeDynamicUrl = function (url, matches, ignoreTrailingSlash) {
     var paramsArr = [];
     for (var i = 0; i < matches.length; i++) {
         var name = matches[i][1];
@@ -176,6 +178,9 @@ var normalizeDynamicUrl = function (url, matches, ignoreTrailingSlash ) {
 
         paramsArr.push(name);
         if (pattern) {
+            if ( !this.allowUnsafeRegex && !safeRegex(pattern) ){
+                throw Error( `${pattern} seems unsafe.`);
+            }
             if (name === "*" && pattern !== "(.*)") {
                 var breakIndex = pattern.indexOf(".*");
                 url = url.replace(matches[i][0], pattern.substr(1, breakIndex - 1) + "(.*)");
@@ -372,7 +377,7 @@ Anumargak.prototype.off = function (method, url, version) {
     var matches = getAllMatches(url, paramRegexStr);
     var result;
     if (matches.length > 0) {//DYNAMIC
-        url = normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash).url;
+        url = this.normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash).url;
         result = this.isRegistered(this.dynamicRoutes, method, url);
     } else {//STATIC
         result = this.isRegistered(this.staticRoutes, method, url);
@@ -427,91 +432,49 @@ Anumargak.prototype.removeEnum = function(method, url){
     }
 }
 
-/**
- * Adds routes for GET method and URL
- * @param {string} url 
- * @param {function} fn 
- */
-Anumargak.prototype.get = function (url, options, fn) {
-    this.on("GET", url, options, fn);
+/* 
+Anumargak.prototype.print = function(){
+    var urlTree = {
+
+    }
+
+    for(var i=0; i < httpMethods.length; i++){
+        this.staticRoutes [ httpMethods[i] ]
+    }
 }
-/**
- * Adds routes for HEAD method and URL
- * @param {string} url 
- * @param {function} fn 
  */
-Anumargak.prototype.head = function (url, options, fn) {
-    this.on("HEAD", url, options, fn);
+
+//register shorthand methods
+for (var index in httpMethods) {
+    const methodName = httpMethods[index];
+    const methodNameInSmall = methodName.toLowerCase();
+  
+    Anumargak.prototype[methodNameInSmall] = function (url, options, fn, store) {
+      return this.on(methodName, url, options, fn, store);
+    }
 }
-/**
- * Adds routes for PUT method and URL
- * @param {string} url 
- * @param {function} fn 
- */
-Anumargak.prototype.put = function (url, options, fn) {
-    this.on("PUT", url, options, fn);
-}
-/**
- * Adds routes for POST method and URL
- * @param {string} url 
- * @param {function} fn 
- */
-Anumargak.prototype.post = function (url, options, fn) {
-    this.on("POST", url, options, fn);
-}
-/**
- * Adds routes for DELETE method and URL
- * @param {string} url 
- * @param {function} fn 
- */
-Anumargak.prototype.delete = function (url, options, fn) {
-    this.on("DELETE", url, options, fn);
+
+Anumargak.prototype.all = function (url, options, fn, store) {
+    this.on(httpMethods, url, options, fn, store);
 }
 
 function Anumargak(options) {
     if (!(this instanceof Anumargak)) return new Anumargak(options);
+
+    options = options || {};
     this.count = 0;
     this.namedExpressions = namedExpressionsStore();
-    this.dynamicRoutes = {
-        GET: {},
-        HEAD: {},
-        PUT: {},
-        POST: {},
-        DELETE: {},
-        OPTIONS: {},
-        PATCH: {},
-        TRACE: {},
-        CONNECT: {},
-        COPY: {},
-        LINK: {},
-        UNLINK: {},
-        PURGE: {},
-        LOCK: {},
-        UNLOCK: {},
-        PROPFIND: {},
-        VIEW: {}
-    }
 
-    this.staticRoutes = {
-        GET: {},
-        HEAD: {},
-        PUT: {},
-        POST: {},
-        DELETE: {},
-        OPTIONS: {},
-        PATCH: {},
-        TRACE: {},
-        CONNECT: {},
-        COPY: {},
-        LINK: {},
-        UNLINK: {},
-        PURGE: {},
-        LOCK: {},
-        UNLOCK: {},
-        PROPFIND: {},
-        VIEW: {}
-    }
+    this.allowUnsafeRegex = options.allowUnsafeRegex || false;
+    this.dynamicRoutes = {};
+    this.staticRoutes = {};
 
+    for (var index in http.METHODS) {
+        const methodName = httpMethods[index];
+        this.dynamicRoutes [ methodName ] = {};
+        this.staticRoutes [ methodName ] = {};
+    }
+    
     if (options) {
         if (options.defaultRoute) {
             this.defaultFn = options.defaultRoute;
@@ -522,6 +485,8 @@ function Anumargak(options) {
         this.ignoreLeadingSlash = options.ignoreLeadingSlash || true;
         this.overwriteAllow = options.overwriteAllow || false;
     }
+
+    
 }
 
 function defaultRoute(req, res) {
