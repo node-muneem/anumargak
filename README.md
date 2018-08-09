@@ -37,38 +37,12 @@ Fastest HTTP Router
 ## Usage
 
 ```js
+const http = require('http')
 const router = require('anumargak')({
   defaultRoute : defaultHandler,
   ignoreTrailingSlash: true,
   ignoreLeadingSlash: true,
-});
-
-anumargak.on("GET", "/this/is/static", handler);
-anumargak.on(["POST","PUT"], "/this/is/static", handler);//supports array
-anumargak.on("GET", "/this/is/:dynamic", handler);
-anumargak.on("GET", "/this/is/:dynamic", handler);//it will overwrite old mapping
-anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", handler);
-//Eg: params = { dynamic : val, pattern: 123}
-anumargak.on("GET", "/this/is/:dynamic/with/:two-:params", handler);//use - to separate multiple parameters
-anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", handler);
-anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", handler);
-anumargak.on("GET", "/similar/:string([a-z]{10})", handler);
-anumargak.on("GET", "/similar/:number([0-9]{10})", handler);//above route is different from this
-
-
-anumargak.quickFind("GET","/this/is/static");//will return { handler: fn, store: extraData }
-anumargak.find("GET","/this/is/static");//will return { handler: fn, store: extraData, params: params}
-anumargak.find("GET","/this/is/dynamic/with/123?ignore=me");//ignore query parameters and hashtag part automatically
-
-anumargak.lookup(req,res) ;//will execute handler with req,res and params(for dynamic URLs) as method parameters
-
-console.log(anumargak.count); //Print number of unique routes added
-```
-
-Example with server
-```js
-const http = require('http')
-const router = require('anumargak')()
+})
 
 router.on('GET', '/', (req, res, params) => {
   //process the request response here
@@ -78,28 +52,56 @@ const server = http.createServer((req, res) => {
   router.lookup(req, res)
 })
 
-server.listen(3000, err => {
-  if (err) throw err
-  console.log('Server listening on: http://localost:3000')
-})
-
+server.listen(3000);
 ```
 
-**wildcard**: wild cards are helpful when a route handler wants to control all the underlying paths. Eg. a handler registered with `/help*` may take care of all the help pages and static resources under the same path.
+## on(method, url [, options] , handler [, store] )
+
+To register a route.
+
+```JavaScript
+router.on("GET", "/this/is/static", handler);
+router.on(["POST","PUT"], "/this/is/static", handler);
+```
+
+### Dynamic URL
+
+You can register dynamic url with multiple path paramters
+
+```JavaScript
+router.on("GET", "/this/is/:dynamic", handler);
+router.on("GET", "/this/is/:dynamic", handler);//it will error
+router.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", handler);
+//Eg: params = { dynamic : val, pattern: 123}
+router.on("GET", "/this/is/:dynamic/with/:two-:params", handler);//use - to separate multiple parameters
+router.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", handler);//multiple parameters
+router.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", handler);//single parameter
+```
+
+### Enumerated URL
+
+Anumargak handls enumerated URLs in static way. Because static URLs can be looked up faster than dynamic URLs.
+
+```js
+router.on("GET", "/login/as/:role(admin|user|staff)", handler);
+```
+
+### wildcard
+wild cards are helpful when a route handler wants to control all the underlying paths. Eg. a handler registered with `/help*` may take care of all the help pages and static resources under the same path. You can check [आलेख (Aalekh)](https://github.com/muneem4node/aalekh) for live example.
 
 ```js
 //this/is/juglee/and/
 //this/is/juglee/and/wild
 //this/is/juglee/and/wild/and/unknown
-anumargak.on("GET", "/this/is/:dynamic/and/*", handler);
+router.on("GET", "/this/is/:dynamic/and/*", handler);
 
 //this/is/juglee/and/wild
 //this/is/juglee/and/wildlife
 //this/is/juglee/and/wild/and/unknown
-anumargak.on("GET", "/this/is/:dynamic/and/wild*", handler);
+router.on("GET", "/this/is/:dynamic/and/wild*", handler);
 ```
 
-**shorthand methods**
+### shorthand methods
 
 ```js
 var router = Anumargak();
@@ -111,7 +113,84 @@ router.put("/this/is/:dynamic", () => 30);
 router.delete("/this/is/:dynamic", () => 30);
 ```
 
-## Similar but not same URLs
+## off(method, url [, version] )
+
+To remove a registered route. If no route is found no error will be thrown.
+
+```JavaScript
+anumargak.off("GET", "/this/is/static");
+anumargak.off("GET", "/this/is/:dynamic");
+anumargak.off("GET", "/this/is/*/really/wild");
+anumargak.off("GET", "/login/as/:role(admin|user|staff)"); //it'll delete all the versions
+```
+
+### Enumerated URLs
+
+an enumerated URL can be deleted multi steps
+
+```JavaScript
+anumargak.off("GET", "/login/as/:role(admin|user|staff)");
+//or
+anumargak.off("GET", "/login/as/admin");
+anumargak.off("GET", "/login/as/user");
+anumargak.off("GET", "/login/as/staff");
+//or
+anumargak.off("GET", "/login/as/:role(user|staff)");
+anumargak.off("GET", "/login/as/admin");
+```
+
+### Versioned URLs
+
+version can be provided as an additional parmeter. Valid values are: 
+
+* 1.2.3 : It'll delete only one URL
+* 1.2.x : It'll delete all the URLs with different patche versions : 1.2.0, 1.2.1 ...
+* 1.x    : It'll delete all the URLs with different minor versions : 1.2.0, 1.2.1, 1.3.5 ...
+
+```JavaScript
+anumargak.off("GET", "/this/is/static", version);
+```
+
+Please **note** that, if you delete a route without specifying versions then all the versioned routes will also be deleted.
+
+## find(method, url [, version])
+
+To find a registered route. It returns;
+
+```JavaScript
+{
+  handler : function(){}, //registered function
+  params : {}, //path parameters
+  store : any // extra data provided at the time of registering the route
+}
+```
+
+## quickFind(method, url [, version])
+
+To find a registered route. It returns;
+
+```JavaScript
+{
+  handler : function(){}, //registered function
+  store : any // extra data provided at the time of registering the route
+}
+```
+
+`quickFind()` is faster than `find()`.
+
+## lookup(request, response)
+
+This method reads *request* object to fetch url, method, and `accept-version` header to find matching route and then run the handler.
+
+The handler should accept: request, response, and params. params is an object of path parameters.
+
+## count
+
+You can always check how many routes are registered. If you delete some routes count will be decreased.
+
+## Other detail
+
+### Similar but not same URLs
 
 You can register the URLs which look similar but not exactly same.
 
@@ -128,7 +207,7 @@ anumargak.on("GET", "/login/as/:role(developer|tester|hacker)", handler);
 ```
 
 
-## Named Expressions
+### Named Expressions
 
 Anumargak lets you add named expressions. You can use them at the time of registering the route.
 
@@ -151,7 +230,7 @@ Example routes
 
 Adding them make this router simple to use.
 
-## accept-version
+### accept-version
 
 Same routes can be registerd with different versions. Lookup method reads `accept-version` header to read the version or you can pass the version in find method directly.
 
