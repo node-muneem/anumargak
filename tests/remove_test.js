@@ -1,5 +1,4 @@
 var Anumargak = require("./../src/letsRoute");
-var Router = require("find-my-way");
 
 describe("Anumargak remove route", function() {
     

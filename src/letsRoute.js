@@ -2,6 +2,7 @@ var { getFirstMatche, getAllMatches, doesMatch, urlSlice } = require("./util");
 var namedExpressionsStore = require("./namedExpressionsStore");
 var semverStore = require("./semver-store");
 var safeRegex = require('safe-regex');
+var processPathParameters = require("./../src/paramsProcessor");
 
 var http = require('http')
 var httpMethods = http.METHODS;
@@ -38,7 +39,6 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
 }
 
 var wildcardRegexStr = "\\/([^\\/:]*)\\*";
-var paramRegexStr = ":([^\\/\\-\\(]+)-?(\\([^\\/]*\\))?";
 var enumRegexStr = ":([^\\/\\-\\(]+)-?(\\(([\\w\\|]+)\\))";
 
 
@@ -63,7 +63,7 @@ Anumargak.prototype.normalizeUrl = function (url) {
 
     var matches = getFirstMatche(url, wildcardRegexStr);
     if (matches) {
-        url = url.substr(0, matches.index + 1) + ":*(" + matches[0].substr(1, matches[0].length - 2) + ".*)"
+        url = url.substr(0, matches.index + 1) + matches[0].substr(1, matches[0].length - 2) +":*(.*)"
     }
 
     return url;
@@ -78,11 +78,10 @@ Anumargak.prototype._addRoute = function (method, url, options, fn, extraData, p
     if( done ) { //All the enumerated URLs are registered
         return;
     }else{
-        var matches = getAllMatches(url, paramRegexStr);
-        if (matches.length > 0) {//DYNAMIC
-            this._addDynamic(method, url, options, fn, extraData, params, matches);
+        if (url.indexOf(":") > 0) {//DYNAMIC
+            this._addDynamic(method, url, options, fn, extraData, params);
         } else {//STATIC
-            this._addStatic(method, url, options, fn, extraData, params, this.ignoreTrailingSlash);
+            this._addStatic(method, url, options, fn, extraData, params);
         }
     }
 }
@@ -119,7 +118,7 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData
     }
 }
 
-Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params, ignoreTrailingSlash){
+Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params){
     this.checkIfRegistered(this.staticRoutes, method, url, options, fn);
 
     this.count++;
@@ -132,7 +131,7 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
     };
 
     //this.staticRoutes[method][url] = { fn: fn, params: params };
-    if (ignoreTrailingSlash) {
+    if (this.ignoreTrailingSlash) {
         if (url.endsWith("/")) {
             url = url.substr(0, url.length - 1);
         } else {
@@ -151,8 +150,8 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
 
 }
 
-Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params, matches){
-    var normalizedUrl = this.normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash);
+Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params){
+    var normalizedUrl = this.normalizeDynamicUrl(url);
     url = normalizedUrl.url;
     
     this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
@@ -164,46 +163,26 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
         regex: regex, 
         verMap: routeHandlers.verMap, 
         params: params || {}, 
-        paramsArr: normalizedUrl.paramsArr ,
+        paramNames: normalizedUrl.paramNames ,
         store: extraData
     };  
     this.count++;  
 }
 
-Anumargak.prototype.normalizeDynamicUrl = function (url, matches, ignoreTrailingSlash) {
-    var paramsArr = [];
-    for (var i = 0; i < matches.length; i++) {
-        var name = matches[i][1];
-        var pattern = matches[i][2];
-
-        paramsArr.push(name);
-        if (pattern) {
-            if ( !this.allowUnsafeRegex && !safeRegex(pattern) ){
-                throw Error( `${pattern} seems unsafe.`);
-            }
-            if (name === "*" && pattern !== "(.*)") {
-                var breakIndex = pattern.indexOf(".*");
-                url = url.replace(matches[i][0], pattern.substr(1, breakIndex - 1) + "(.*)");
-            } else {
-                url = url.replace(matches[i][0], pattern);
-            }
+Anumargak.prototype.normalizeDynamicUrl = function (url) {
+    var result = processPathParameters(url, this.allowUnsafeRegex);
+    
+    if ( this.ignoreTrailingSlash) {
+        if (result.url.endsWith("/")) {
+            result.url = result.url + "?";
         } else {
-            url = url.replace(matches[i][0], "([^\\/]+)");
-        }
-        
-    }
-
-    if ( ignoreTrailingSlash) {
-        if (url.endsWith("/")) {
-            url = url + "?";
-        } else {
-            url = url + "/?";
+            result.url = result.url + "/?";
         }
     }
 
     return {
-        paramsArr : paramsArr,
-        url : url
+        paramNames : result.paramNames,
+        url : result.url
     };
 }
 
@@ -345,7 +324,7 @@ Anumargak.prototype.find = function (method, url, version) {
             var params = route.params;
             if (matches) {
                 for (var m_i = 1; m_i < matches.length; m_i++) {
-                    params[route.paramsArr[m_i - 1]] = matches[m_i];
+                    params[route.paramNames[m_i - 1]] = matches[m_i];
                 }
 
                 var result = this.dynamicRoutes[method][urlRegex[i]];
@@ -374,10 +353,10 @@ Anumargak.prototype.off = function (method, url, version) {
     var done = this.removeEnum(method, url);
     if(done) return;
 
-    var matches = getAllMatches(url, paramRegexStr);
+    var hasPathParam = url.indexOf(":");
     var result;
-    if (matches.length > 0) {//DYNAMIC
-        url = this.normalizeDynamicUrl(url, matches, this.ignoreTrailingSlash).url;
+    if ( hasPathParam > -1) {//DYNAMIC
+        url = this.normalizeDynamicUrl(url).url;
         result = this.isRegistered(this.dynamicRoutes, method, url);
     } else {//STATIC
         result = this.isRegistered(this.staticRoutes, method, url);
