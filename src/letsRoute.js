@@ -271,7 +271,7 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 
 
 Anumargak.prototype.quickFind = function (method, url, version) {
-    url = urlSlice(url);
+    url = urlSlice(url).url;
     var result = this.staticRoutes[method][url];
     if (result) {
         return {
@@ -303,24 +303,28 @@ Anumargak.prototype.lookup = function (req, res) {
     if(result === null){
         this.defaultFn(req, res);
     }else{
+        req._path = result.urlData.url;
+        req._queryStr = result.urlData.queryStr;
+        req._hashStr = result.urlData.hashStr;
         result.handler(req, res, result.params);
     }
 }
 
 Anumargak.prototype.find = function (method, url, version) {
-    url = urlSlice(url);
-    var result = this.staticRoutes[method][url];
+    const urlData = urlSlice(url);
+    var result = this.staticRoutes[method][urlData.url];
     if (result) {
         return { 
             handler: this.getHandler(result, version), 
             params: result.params,
-            store: result.store
+            store: result.store,
+            urlData : urlData
         };
     }else {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
             var route = this.dynamicRoutes[method][urlRegex[i]];
-            var matches = route.regex.exec(url);
+            var matches = route.regex.exec(urlData.url);
             var params = route.params;
             if (matches) {
                 for (var m_i = 1; m_i < matches.length; m_i++) {
@@ -331,7 +335,8 @@ Anumargak.prototype.find = function (method, url, version) {
                 return { 
                     handler: this.getHandler(result, version),
                     params: params,
-                    store: result.store 
+                    store: result.store,
+                    urlData : urlData
                 };
             }
         }

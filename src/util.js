@@ -56,10 +56,32 @@ exports.getAllRegexMatches = function (string, regex) {
     return matches;
 }
 
-exports.urlSlice = function (url) {
+/* exports.urlSlice = function (url) {
     var index = url.indexOf("?");
     if (index > 0) return url.substr(0, index);
     var index = url.indexOf("#");
     if (index > 0) return url.substr(0, index);
     return url;
+} */
+exports.urlSlice = function (url) {
+    var result = {
+        url : url
+    };
+    for (var i = 0, len = url.length; i < len; i++) {
+        var charCode = url.charCodeAt(i)
+        if( url[i] === '?' ) {
+            result.url = url.substr(0, i)
+            result.queryStr = url.substr(i+1);
+            break;
+        }else if( url[i] === '#' ) {
+            result.url = url.substr(0, i)
+            result.hashStr = url.substr(i+1);
+            break;
+        }else if( url[i] === ';' ) {
+            result.url = url.substr(0, i)
+            result.queryStr = url.substr(i+1);
+            break;
+        }
+      }
+    return result;
 }

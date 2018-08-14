@@ -209,11 +209,15 @@ describe("Anumargak ", function () {
         expect(anumargak.find("GET", "/this/is/dynamic/with/123#ignoreme").handler()).toEqual(30);
     });
 
-    it("should lookup correct function leaving query paramaters apart", function (done) {
+    it("should lookup correct function without comparing query paramaters", function (done) {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
             (req, res, params) => {
+                expect(req._path).toEqual("/this/is/dynamic/with/123rest");
+                expect(req._queryStr).toEqual("ignore=me");
+                expect(req._hashStr).toEqual(undefined);
+
                 expect(params).toEqual({
                     dynamic: "dynamic",
                     two: "123"
@@ -229,6 +233,50 @@ describe("Anumargak ", function () {
         }
 
         anumargak.lookup(req);
+    });
+
+    it("should lookup correct function without comparing query paramaters separated by ;", function (done) {
+        var anumargak = Anumargak();
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
+            (req, res, params) => {
+                expect(req._path).toEqual("/this/is/dynamic/with/123rest");
+                expect(req._queryStr).toEqual("ignore=me");
+                expect(req._hashStr).toEqual(undefined);
+
+                expect(params).toEqual({
+                    dynamic: "dynamic",
+                    two: "123"
+                });
+                done();
+            }
+        );
+
+        var req = {
+            method: "GET",
+            url: "/this/is/dynamic/with/123rest;ignore=me",
+            headers: {}
+        }
+
+        anumargak.lookup(req);
+    });
+
+    it("should lookup correct function without comparing hashtag", function (done) {
+        var anumargak = Anumargak();
+
+        anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
+            (req, res, params) => {
+                expect(req._path).toEqual("/this/is/dynamic/with/123rest");
+                expect(req._queryStr).toEqual(undefined);
+                expect(req._hashStr).toEqual("ignoreme");
+
+                expect(params).toEqual({
+                    dynamic: "dynamic",
+                    two: "123"
+                });
+                done();
+            }
+        );
 
         var req = {
             method: "GET",

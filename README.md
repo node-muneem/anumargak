@@ -39,6 +39,7 @@ const router = require('anumargak')({
   defaultRoute : defaultHandler,//it'll be called when no route matches. If it is not set the we'll set statusCode to 404
   ignoreTrailingSlash: true,
   ignoreLeadingSlash: true,
+  allowUnsafeRegex: false
 })
 
 router.on('GET', '/', (req, res, params) => {
@@ -70,8 +71,8 @@ router.on("GET", "/this/is/:dynamic", handler);
 router.on("GET", "/this/is/:dynamic", handler);//it will error
 router.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)", handler);
 //Eg: params = { dynamic : val, pattern: 123}
-router.on("GET", "/this/is/:dynamic/with/:two-:params", handler);//use - to separate multiple parameters
-router.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", handler);//multiple parameters
+router.on("GET", "/this/is/:dynamic/with/:two:params", handler);// multiple parameters
+router.on("GET", "/this/is/:dynamic/with/:two(\\d+):params", handler);//multiple parameters with pattern
 router.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest", handler);//single parameter
 ```
 
@@ -180,6 +181,8 @@ To find a registered route. It returns;
 This method reads *request* object to fetch url, method, and `accept-version` header to find matching route and then run the handler.
 
 The handler should accept: request, response, and params. params is an object of path parameters.
+
+Lookup method also save _path, _queryStr, and _hashStr in request object to save re-effort of spliting them.
 
 ## count
 
