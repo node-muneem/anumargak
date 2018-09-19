@@ -1,4 +1,6 @@
-var getAllRegexMatches = require("./util").getAllRegexMatches;
+'use strict'
+
+var getAllMatches = require("./util").getAllMatches;
 
 function NamedExpressionsStore(){
     if(!(this instanceof NamedExpressionsStore)) return new NamedExpressionsStore();
@@ -32,8 +34,9 @@ NamedExpressionsStore.prototype.addNamedExpression = function () {
  * @param {string} url 
  */
 NamedExpressionsStore.prototype.replaceNamedExpression= function (url) {
-    var namedExpressionRegexStr = "\\(:(.*?):\\)";
-    var namedExpressionMatches = getNamedExpressionMatches(url, namedExpressionRegexStr);
+    //var namedExpressionRegexStr = "\\(:(.*?):\\)";
+    var namedExpressionRegexStr = /\(:(.*?):\)/g;
+    var namedExpressionMatches = getAllMatches(url, namedExpressionRegexStr);
 
     if (namedExpressionMatches && namedExpressionMatches.length > 0) {
         for (var i = 0; i < namedExpressionMatches.length; i++) {
@@ -47,11 +50,6 @@ NamedExpressionsStore.prototype.replaceNamedExpression= function (url) {
     }
 
     return url;
-}
-
-var getNamedExpressionMatches = function (string, regex_str) {
-    var regex = new RegExp(regex_str, "g");
-    return getAllRegexMatches(string, regex);
 }
 
 module.exports = NamedExpressionsStore;

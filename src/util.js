@@ -1,3 +1,5 @@
+'use strict'
+
 const RandExp = require('randexp');
 
 RandExp.prototype.randInt = (a, b) => {
@@ -38,7 +40,8 @@ exports.getFirstMatche = function (string, regex_str) {
 }
 
 exports.getAllMatches = function (string, regex_str) {
-    var regex = new RegExp(regex_str, "g");
+    //var regex = new RegExp(regex_str, "g");
+    var regex = new RegExp(regex_str);
     return exports.getAllRegexMatches(string, regex);
 }
 

@@ -1,3 +1,5 @@
+'use strict'
+
 var getFirstMatche = require("./util").getFirstMatche;
 var getAllMatches = require("./util").getAllMatches;
 var doesMatch = require("./util").doesMatch;
@@ -236,7 +238,8 @@ Anumargak.prototype.checkIfRegistered = function (arr, method, url, options, fn)
     }
 }
 
-var urlPartsRegex = new RegExp("(\\/\\(.*?\\)|\\/[^\\(\\)\\/]+)");
+//var urlPartsRegex = new RegExp("(\\/\\(.*?\\)|\\/[^\\(\\)\\/]+)");
+var urlPartsRegex = new RegExp(/(\/\(.*?\)|\/[^\(\)\/]+)/g);
 
 Anumargak.prototype.isRegistered = function (arr, method, url) {
     if (arr[method][url]) {//exact route is already registered
@@ -246,8 +249,10 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
         //"/this/path/:is/dynamic"
         //"/this/:path/is/dynamic"
         var urls = Object.keys( arr[method] );
+        //var givenUrlParts = getAllMatches(url, urlPartsRegex);
         var givenUrlParts = getAllMatches(url, urlPartsRegex);
         for (var u_i in urls) {//compare against all the registered URLs
+            //var urlParts = getAllMatches(urls[u_i], urlPartsRegex);
             var urlParts = getAllMatches(urls[u_i], urlPartsRegex);
             if (urlParts.length !== givenUrlParts.length) {
                 continue;

@@ -1,3 +1,5 @@
+'use strict'
+
 var SemVerStore = require("semver-store");
 
 SemVerStore.prototype.delete = function (version) {
