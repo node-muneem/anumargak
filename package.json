@@ -1,6 +1,6 @@
 {
   "name": "anumargak",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Amazing fast multipurpose simple to use web/ HTTP router",
   "main": "./src/letsRoute.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "coverage": "nyc jasmine tests/*test.js; nyc report --reporter=lcov ",
     "updateContributors": "node static/contributors.js"
   },
-  "author": "Amit Gupta (https://github.com/amitguptagwl)",
+  "author": "Amit Gupta (http://amitkumargupta.work)",
   "license": "MIT",
   "repository": {
     "type": "git",
