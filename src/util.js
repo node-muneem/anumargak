@@ -1,6 +1,6 @@
 'use strict'
 
-const RandExp = require('randexp');
+var RandExp = require('randexp');
 
 RandExp.prototype.randInt = (a, b) => {
     return a;
@@ -71,7 +71,6 @@ exports.urlSlice = function (url) {
         url : url
     };
     for (var i = 0, len = url.length; i < len; i++) {
-        var charCode = url.charCodeAt(i)
         if( url[i] === '?' ) {
             result.url = url.substr(0, i)
             result.queryStr = url.substr(i+1);
