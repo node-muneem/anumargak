@@ -1,7 +1,9 @@
-var { getFirstMatche, getAllMatches, doesMatch, urlSlice } = require("./util");
+var getFirstMatche = require("./util").getFirstMatche;
+var getAllMatches = require("./util").getAllMatches;
+var doesMatch = require("./util").doesMatch;
+var urlSlice = require("./util").urlSlice;
 var namedExpressionsStore = require("./namedExpressionsStore");
 var semverStore = require("./semver-store");
-var safeRegex = require('safe-regex');
 var processPathParameters = require("./../src/paramsProcessor");
 
 var http = require('http')

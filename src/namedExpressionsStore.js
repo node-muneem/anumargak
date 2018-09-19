@@ -1,4 +1,4 @@
-var { getFirstMatche, getAllMatches, doesMatch, urlSlice, getAllRegexMatches } = require("./util");
+var getAllRegexMatches = require("./util").getAllRegexMatches;
 
 function NamedExpressionsStore(){
     if(!(this instanceof NamedExpressionsStore)) return new NamedExpressionsStore();
