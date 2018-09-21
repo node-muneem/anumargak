@@ -1,5 +1,3 @@
-'use strict';
-
 var stars = '\x1B[1m***\x1B[0m';
 var yellow = "\033[1;33m";
 var light_green = "\033[1;32m";
