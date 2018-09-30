@@ -22,8 +22,17 @@ describe("Anumargak remove route", function() {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(0);
         expect(anumargak.count).toEqual(0);
 
-        expect(anumargak.find("GET", "/this/is/static") ).toEqual( null );
-        expect(anumargak.find("HEAD", "/this/is/static") ).toEqual( null );
+        expect(anumargak.find("GET", "/this/is/static") ).toEqual( {
+            urlData : {
+                url : "/this/is/static"
+            }
+        } );
+        expect(anumargak.find("HEAD", "/this/is/static") ).toEqual( {
+            urlData : {
+                url : "/this/is/static"
+            }
+        } );
+
     });
 
     it("should remove dynamic URLs", function() {
@@ -46,8 +55,16 @@ describe("Anumargak remove route", function() {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(0);
         expect(anumargak.count).toEqual(0);
 
-        expect(anumargak.find("GET", "/this/is/dynamic") ).toEqual( null );
-        expect(anumargak.find("HEAD", "/this/is/dynamic") ).toEqual( null );
+        expect(anumargak.find("GET", "/this/is/dynamic") ).toEqual( {
+            urlData : {
+                url : "/this/is/dynamic"
+            }
+        } );
+        expect(anumargak.find("HEAD", "/this/is/dynamic") ).toEqual( {
+            urlData : {
+                url : "/this/is/dynamic"
+            }
+        } );
     });
 
     it("should remove wildchar URLs", function() {
@@ -68,10 +85,26 @@ describe("Anumargak remove route", function() {
         expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);
         expect(anumargak.count).toEqual(0);
 
-        expect(anumargak.find("GET","/this/is/dynamic") ).toEqual( null );
-        expect(anumargak.find("GET","/this/is/dynamic/url") ).toEqual( null );
-        expect(anumargak.find("GET","/this/is/*") ).toEqual( null );
-        expect(anumargak.find("GET","/this/is/") ).toEqual( null );
+        expect(anumargak.find("GET","/this/is/dynamic")).toEqual({
+            urlData : {
+                url : "/this/is/dynamic"
+            }
+        });
+        expect(anumargak.find("GET","/this/is/dynamic/url")).toEqual({
+            urlData : {
+                url : "/this/is/dynamic/url"
+            }
+        });
+        expect(anumargak.find("GET","/this/is/*")).toEqual({
+            urlData : {
+                url : "/this/is/*"
+            }
+        });
+        expect(anumargak.find("GET","/this/is/")).toEqual({
+            urlData : {
+                url : "/this/is/"
+            }
+        });
 
     });
 

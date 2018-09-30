@@ -40,8 +40,16 @@ describe("Anumargak wildchar", function() {
 
         expect(anumargak.find("GET","/this/is/dynamic").handler()).toEqual(30);
         expect(anumargak.find("GET","/this/is/dynamic/url").handler()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/*")).toEqual(null);
-        expect(anumargak.find("GET","/this/is/")).toEqual(null);
+        expect(anumargak.find("GET","/this/is/*")).toEqual({
+            urlData : {
+                url : "/this/is/*"
+            }
+        });
+        expect(anumargak.find("GET","/this/is/")).toEqual({
+            urlData : {
+                url : "/this/is/"
+            }
+        });
     });
 
     it("FIND: should capture rest url when /some*/", function() {
@@ -54,8 +62,16 @@ describe("Anumargak wildchar", function() {
 
         expect(anumargak.find("GET","/this/is/dynamic").handler()).toEqual(30);
         expect(anumargak.find("GET","/this/is/dynamic/url").handler()).toEqual(30);
-        expect(anumargak.find("GET","/this/is/*")).toEqual(null);
-        expect(anumargak.find("GET","/this/is/")).toEqual(null);
+        expect(anumargak.find("GET","/this/is/*")).toEqual({
+            urlData : {
+                url : "/this/is/*"
+            }
+        });
+        expect(anumargak.find("GET","/this/is/")).toEqual({
+            urlData : {
+                url : "/this/is/"
+            }
+        });
     });
 
     it("FIND: should capture rest url when there is already a parameter ahead", function() {

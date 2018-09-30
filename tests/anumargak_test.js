@@ -347,6 +347,8 @@ describe("Anumargak ", function () {
         var anumargak = Anumargak({
             defaultRoute: (req, res, params) => {
                 expect(params).toEqual(undefined);
+                expect(req._path).toEqual("/this/is/not/matching");
+                expect(req._queryStr).toEqual("q=test");
                 done();
             }
         });
@@ -359,13 +361,14 @@ describe("Anumargak ", function () {
 
         var req = {
             method: "GET",
-            url: "/this/is/not/matching",
+            url: "/this/is/not/matching?q=test",
             headers: {}
         }
 
         anumargak.lookup(req);
 
     });
+
     it("should register static routes for 'GET, POST, DELETE, PUT, HEAD' methods", function () {
         var anumargak = Anumargak();
 

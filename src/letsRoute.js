@@ -307,13 +307,14 @@ Anumargak.prototype.lookup = function (req, res) {
     var version = req.headers['accept-version'];
 
     var result = this.find(method, req.url, version);
-    if(result === null){
-        this.defaultFn(req, res);
-    }else{
-        req._path = result.urlData.url;
-        req._queryStr = result.urlData.queryStr;
-        req._hashStr = result.urlData.hashStr;
+    req._path = result.urlData.url;
+    req._queryStr = result.urlData.queryStr;
+    req._hashStr = result.urlData.hashStr;
+
+    if(result.handler){
         result.handler(req, res, result.params);
+    }else{
+        this.defaultFn(req, res);
     }
 }
 
@@ -348,7 +349,9 @@ Anumargak.prototype.find = function (method, url, version) {
             }
         }
     }
-    return null;
+    return {
+        urlData : urlData
+    };
 }
 
 Anumargak.prototype.getHandler = function (route, version) {
