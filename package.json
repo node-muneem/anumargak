@@ -36,10 +36,10 @@
     "jasmine": "^3.2.0",
     "jasmine-core": "^3.2.0",
     "mock-req": "^0.2.0",
-    "nyc": "^11.9.0"
+    "nyc": "^13.0.1"
   },
   "dependencies": {
-    "randexp": "^0.4.9",
+    "randexp": "^0.5.3",
     "safe-regex": "^1.1.0",
     "semver-store": "^0.3.0"
   },
