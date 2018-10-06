@@ -22,10 +22,8 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
  * @param {function} fn 
  */
 Anumargak.prototype.on = function (method, url, options, fn, extraData) {
-    if (Array.isArray(url))
-    {
-        for (var i = 0; i < url.length; i++)
-        {
+    if (Array.isArray(url)) {
+        for (var i = 0; i < url.length; i++) {
             this.on(method, url[i], options, fn, extraData);
         }
         return this;
