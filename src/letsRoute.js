@@ -330,7 +330,7 @@ Anumargak.prototype.lookup = function (req, res) {
 
     if(result.handler){
         this.eventEmitter.emit("found", req, res);
-        result.handler(req, res, result.params);
+        result.handler(req, res, result.params, result.store);
     }else{
         this.eventEmitter.emit("not found", req, res);
         this.defaultFn(req, res);
