@@ -486,22 +486,26 @@ describe("Anumargak ", function () {
         expect(anumargak.find("DELETE", "/this/is/dynamic/with/5").handler()).toEqual(30);
     });
 
-    /* const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    it("should lookup for aync callback", function(done) {
-        var anumargak = Anumargak({
-            ignoreTrailingSlash: true
-        });
+    it("should lookup for aync callback", async function(done) {
+        var router = Anumargak();
 
-        async function callback (){
-            await sleep(100);
+        async function callback (req){
+            await sleep(200);
+            expect(req._path).toEqual("/this/is/static");
             done();
         }
-        anumargak.on("GET", "/this/is/static",callback);
+
+        router.on("GET", "/this/is/static", callback);
         
-        anumargak.lookup({
-            method: "GET", 
-            url: "/this/is/static"});
-    }); */
+        var req = {
+            method: "GET",
+            url: "/this/is/static",
+            headers: {}
+        }
+
+        router.lookup(req);
+    });
 
 });

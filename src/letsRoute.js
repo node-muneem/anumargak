@@ -7,12 +7,26 @@ var urlSlice = require("./util").urlSlice;
 var namedExpressionsStore = require("./namedExpressionsStore");
 var semverStore = require("./semver-store");
 var processPathParameters = require("./../src/paramsProcessor");
+var events = require('events');
 
 var http = require('http')
 var httpMethods = http.METHODS;
 
 Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
     this.namedExpressions.addNamedExpression(arg1, arg2);
+}
+
+const supportedEvents = [ "request", "found", "not found", "route", "default" ];
+
+Anumargak.prototype._onEvent = function (eventName, fn) {
+    let _name = eventName.toLowerCase();
+    if(_name === "route"){
+        _name = "found";
+    }else if(_name === "default"){
+        _name = "not found";
+    }
+    if( supportedEvents.indexOf(_name) === -1 ) throw Error(`Router: Unsupported event ${eventName}`);
+    this.eventEmitter.on(_name, fn);
 }
 
 /**
@@ -22,8 +36,10 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
  * @param {function} fn 
  */
 Anumargak.prototype.on = function (method, url, options, fn, extraData) {
-
-    if (typeof options === 'function') {
+    if (typeof url === 'function') {
+        this._onEvent(method, url);
+        return this;
+    } else if (typeof options === 'function') {
         extraData = fn;
         fn = options;
         options = {};
@@ -302,6 +318,7 @@ Anumargak.prototype.quickFind = function (method, url, version) {
 }
 
 Anumargak.prototype.lookup = function (req, res) {
+    this.eventEmitter.emit("request", req, res);
     var method = req.method;
     
     var version = req.headers['accept-version'];
@@ -312,8 +329,10 @@ Anumargak.prototype.lookup = function (req, res) {
     req._hashStr = result.urlData.hashStr;
 
     if(result.handler){
+        this.eventEmitter.emit("found", req, res);
         result.handler(req, res, result.params);
     }else{
+        this.eventEmitter.emit("not found", req, res);
         this.defaultFn(req, res);
     }
 }
@@ -458,6 +477,7 @@ function Anumargak(options) {
     options = options || {};
     this.count = 0;
     this.namedExpressions = namedExpressionsStore();
+    this.eventEmitter = new events.EventEmitter();
 
     this.allowUnsafeRegex = options.allowUnsafeRegex || false;
     this.dynamicRoutes = {};
