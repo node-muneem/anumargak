@@ -2,7 +2,7 @@ var Anumargak = require("./../src/letsRoute");
 
 describe("Anumargak events", function () {
 
-    it("should emit found and request event when the route is registered", function (done) {
+    it("should emit found, request, and end event when the route is registered", function (done) {
         var router = Anumargak();
 
         var seq = [];
@@ -16,11 +16,13 @@ describe("Anumargak events", function () {
             seq.push("route");
         }).on("default", () => {
             seq.push("default");
+        }).on("end", () => {
+            seq.push("end");
         })
 
         function callback (req){
-            expect(req._path).toEqual("/this/is/static");
-            expect(seq).toEqual(["request", "found", "route"]);
+            expect(req._path.url).toEqual("/this/is/static");
+            expect(seq).toEqual(["request", "found", "route", "end"]);
             done();
         }
 
@@ -38,7 +40,7 @@ describe("Anumargak events", function () {
     it("should emit not-found  and request event when the route is not registered", function (done) {
         var seq = [];
         function notFound(req){
-            expect(req._path).toEqual("/this/is/static2");
+            expect(req._path.url).toEqual("/this/is/static2");
             expect(seq).toEqual(["request", "not found", "default"]);
             done();
         }

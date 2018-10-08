@@ -92,8 +92,8 @@ describe("Anumargak wildchar", function() {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/dyna*/with/:two(\\d+)rest", 
-            (req,res,params) => {
-                expect(params).toEqual({
+            (req,res) => {
+                expect(req._path.params).toEqual({
                     "*" : "mic/with/123rest"
                 });
                 done();
@@ -114,8 +114,8 @@ describe("Anumargak wildchar", function() {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/*/with/:two(\\d+)rest", 
-            (req,res,params) => {
-                expect(params).toEqual({
+            (req,res) => {
+                expect(req._path.params).toEqual({
                     "*" : "dynamic/with/123rest"
                 });
                 done();
@@ -135,8 +135,8 @@ describe("Anumargak wildchar", function() {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/dyna*mic/with/:two(\\d+)rest", 
-            (req,res,params) => {
-                expect(params).toEqual({
+            (req,res) => {
+                expect(req._path.params).toEqual({
                     "*" : "test/with/"
                 });
                 done();
@@ -156,8 +156,8 @@ describe("Anumargak wildchar", function() {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/:param/is/dyna*mic/with/:two(\\d+)rest", 
-            (req,res,params) => {
-                expect(params).toEqual({
+            (req,res) => {
+                expect(req._path.params).toEqual({
                     "*" : "test/with/",
                     "param" : "test"
                 });
@@ -178,8 +178,8 @@ describe("Anumargak wildchar", function() {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/dyna*", 
-            (req,res,params) => {
-                expect(params).toEqual({
+            (req,res) => {
+                expect(req._path.params).toEqual({
                     "*" : ""
                 });
                 done();

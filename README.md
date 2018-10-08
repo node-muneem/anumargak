@@ -266,6 +266,28 @@ Following events are supported;
 * *found* - Before calling registered handler. (alias: *route* )
 * *not found* - When there is no registered handler. (alias: *default* )
 
+### Mappings
+
+Anumargak supports
+
+* *one-to-one* mapping: One url to one handler
+
+```js
+router.on( "single/url", fn );
+```
+
+* *one-to-many* mapping: One url to series of handlers
+```js
+router.on( "single/url", [fn, fn] );
+```
+* *many-to-one* mapping: Multiple urls to one handler
+```js
+router.on( ["single/url", "other/url" ], fn );
+```
+* *many-to-one* mapping: Multiple urls to series of handlers
+```js
+router.on( ["single/url", "other/url" ], [fn, fn] );
+```
 
 ## Benchmark
 

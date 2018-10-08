@@ -39,7 +39,7 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
     if (typeof url === 'function') {
         this._onEvent(method, url);
         return this;
-    } else if (typeof options === 'function') {
+    } else if (typeof options === 'function' || Array.isArray(options)) {
         extraData = fn;
         fn = options;
         options = {};
@@ -317,20 +317,36 @@ Anumargak.prototype.quickFind = function (method, url, version) {
     return null;
 }
 
-Anumargak.prototype.lookup = function (req, res) {
+Anumargak.prototype.lookup = async function (req, res) {
     this.eventEmitter.emit("request", req, res);
     var method = req.method;
     
     var version = req.headers['accept-version'];
 
     var result = this.find(method, req.url, version);
-    req._path = result.urlData.url;
+    req._path = {
+        url : result.urlData.url,
+        params : result.params,
+    }; 
     req._queryStr = result.urlData.queryStr;
     req._hashStr = result.urlData.hashStr;
 
     if(result.handler){
         this.eventEmitter.emit("found", req, res);
-        result.handler(req, res, result.params, result.store);
+        if(Array.isArray(result.handler) ){
+            const len = result.handler.length;
+            for(let i=0; i<len;i++){
+                if( !res.finished ) {
+                    await result.handler[i](req, res, result.store);
+                }else{
+                    break;
+                }
+            }
+        }else{
+            result.handler(req, res, result.store);
+        }
+        this.eventEmitter.emit("end", req, res);
+
     }else{
         this.eventEmitter.emit("not found", req, res);
         this.defaultFn(req, res);
