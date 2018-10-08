@@ -176,13 +176,13 @@ To find a registered route. It returns;
 
 `quickFind()` is faster than `find()`.
 
-## lookup(request, response)
+## lookup(request, response, store)
 
 This method reads *request* object to fetch url, method, and `accept-version` header to find matching route and then run the handler.
 
-The handler should accept: request, response, and params. params is an object of path parameters.
+The handler should accept: request, response, and store. *request._path.params* is an object of path parameters.
 
-Lookup method also save _path, _queryStr, and _hashStr in request object to save re-effort of spliting them.
+Lookup method also save _path, _queryStr, and _hashStr in request object to save re-effort of spliting them. *_path* is an object with two properties: url, params.
 
 ## count
 
