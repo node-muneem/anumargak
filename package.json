@@ -1,6 +1,6 @@
 {
   "name": "anumargak",
-  "version": "1.9.5",
+  "version": "2.0.0",
   "description": "Amazing fast multipurpose simple to use web/ HTTP router",
   "main": "./src/letsRoute.js",
   "scripts": {
