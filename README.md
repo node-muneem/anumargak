@@ -313,8 +313,25 @@ router.on( ["single/url", "other/url" ], [fn, fn] );
 
 ![chart](./static/chart.png)
 
+## Integration with other web frameworks
 
-### Worth to mention
+[Muneem](https://github.com/node-muneem/muneem) framework is already based on Anumargak. To use it with express js;
+
+```js
+const app = require("express")();
+const Anumargak = require("anumargak");
+const router = new Anumargak();
+
+app.use((req,res) => router.lookup(req, res));
+
+router.on("GET", "/", (req, res) => {
+    //..
+});
+
+app.listen(3002);
+```
+
+## Worth to mention
 
 - **[निम्न (NIMN)](https://github.com/nimndata/spec)** : Save up to 85% network bandwidth and storage space.
 - **[imglab](https://github.com/NaturalIntelligence/imglab)** : Speedup and simplify image labeling / annotation process online. Supports multiple formats, one click annotation, easy interface and much more.
