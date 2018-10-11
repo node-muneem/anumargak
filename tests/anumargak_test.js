@@ -178,8 +178,8 @@ describe("Anumargak ", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
-            (req, res, params) => {
-                expect(params).toEqual({
+            (req, res) => {
+                expect(req._path.params).toEqual({
                     dynamic: "dynamic",
                     two: "123"
                 });
@@ -187,8 +187,8 @@ describe("Anumargak ", function () {
             }
         );
         anumargak.on("GET", "/example/at/:hour(\\d{2})h:minute(\\d{2})m",
-            (req, res, params) => {
-                expect(params).toEqual({
+            (req, res) => {
+                expect(req._path.params).toEqual({
                     hour: "32",
                     minute: "48"
                 });
@@ -228,12 +228,12 @@ describe("Anumargak ", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
-            (req, res, params) => {
-                expect(req._path).toEqual("/this/is/dynamic/with/123rest");
+            (req, res) => {
+                expect(req._path.url).toEqual("/this/is/dynamic/with/123rest");
                 expect(req._queryStr).toEqual("ignore=me");
                 expect(req._hashStr).toEqual(undefined);
 
-                expect(params).toEqual({
+                expect(req._path.params).toEqual({
                     dynamic: "dynamic",
                     two: "123"
                 });
@@ -254,12 +254,12 @@ describe("Anumargak ", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
-            (req, res, params) => {
-                expect(req._path).toEqual("/this/is/dynamic/with/123rest");
+            (req, res) => {
+                expect(req._path.url).toEqual("/this/is/dynamic/with/123rest");
                 expect(req._queryStr).toEqual("ignore=me");
                 expect(req._hashStr).toEqual(undefined);
 
-                expect(params).toEqual({
+                expect(req._path.params).toEqual({
                     dynamic: "dynamic",
                     two: "123"
                 });
@@ -280,12 +280,12 @@ describe("Anumargak ", function () {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
-            (req, res, params) => {
-                expect(req._path).toEqual("/this/is/dynamic/with/123rest");
+            (req, res) => {
+                expect(req._path.url).toEqual("/this/is/dynamic/with/123rest");
                 expect(req._queryStr).toEqual(undefined);
                 expect(req._hashStr).toEqual("ignoreme");
 
-                expect(params).toEqual({
+                expect(req._path.params).toEqual({
                     dynamic: "dynamic",
                     two: "123"
                 });
@@ -360,16 +360,16 @@ describe("Anumargak ", function () {
 
     it("should run default route", function (done) {
         var anumargak = Anumargak({
-            defaultRoute: (req, res, params) => {
-                expect(params).toEqual(undefined);
-                expect(req._path).toEqual("/this/is/not/matching");
+            defaultRoute: (req, res) => {
+                expect(req._path.params).toEqual(undefined);
+                expect(req._path.url).toEqual("/this/is/not/matching");
                 expect(req._queryStr).toEqual("q=test");
                 done();
             }
         });
 
         anumargak.on("GET", "/this/is/:dynamic/with/:two(\\d+)rest",
-            (req, res, params) => {
+            (req, res) => {
                 done.fail();
             }
         );
@@ -501,22 +501,26 @@ describe("Anumargak ", function () {
         expect(anumargak.find("DELETE", "/this/is/dynamic/with/5").handler()).toEqual(30);
     });
 
-    /* const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    it("should lookup for aync callback", function(done) {
-        var anumargak = Anumargak({
-            ignoreTrailingSlash: true
-        });
+    it("should lookup for aync callback", async function(done) {
+        var router = Anumargak();
 
-        async function callback (){
-            await sleep(100);
+        async function callback (req){
+            await sleep(200);
+            expect(req._path.url).toEqual("/this/is/static");
             done();
         }
-        anumargak.on("GET", "/this/is/static",callback);
+
+        router.on("GET", "/this/is/static", callback);
         
-        anumargak.lookup({
-            method: "GET", 
-            url: "/this/is/static"});
-    }); */
+        var req = {
+            method: "GET",
+            url: "/this/is/static",
+            headers: {}
+        }
+
+        router.lookup(req);
+    });
 
 });

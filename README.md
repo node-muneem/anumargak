@@ -3,15 +3,14 @@ Fastest HTTP Router
 
 <div align="center"><img src="static/anumargak.png"  width="300px"></div>
 
-[![Known Vulnerabilities](https://snyk.io/test/github/naturalintelligence/anumargak/badge.svg)](https://snyk.io/test/github/naturalintelligence/anumargak) 
-[![Travis ci Build Status](https://travis-ci.org/NaturalIntelligence/anumargak.svg?branch=master)](https://travis-ci.org/NaturalIntelligence/anumargak) 
-[![Coverage Status](https://coveralls.io/repos/github/NaturalIntelligence/anumargak/badge.svg?branch=master)](https://coveralls.io/github/NaturalIntelligence/anumargak?branch=master) 
-[![bitHound Overall Score](https://www.bithound.io/github/NaturalIntelligence/anumargak/badges/score.svg)](https://www.bithound.io/github/NaturalIntelligence/anumargak) 
+[![Known Vulnerabilities](https://snyk.io/test/github/node-muneem/anumargak/badge.svg)](https://snyk.io/test/github/node-muneem/anumargak) 
+[![Travis ci Build Status](https://travis-ci.org/node-muneem/anumargak.svg?branch=master)](https://travis-ci.org/node-muneem/anumargak) 
+[![Coverage Status](https://coveralls.io/repos/github/node-muneem/anumargak/badge.svg?branch=master)](https://coveralls.io/github/node-muneem/anumargak?branch=master) 
 [![NPM total downloads](https://img.shields.io/npm/dt/anumargak.svg)](https://npm.im/anumargak)
 
 
 <a href="https://www.patreon.com/bePatron?u=9531404" data-patreon-widget-type="become-patron-button"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patron!" width="200" /></a>
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=KQJAX48SPUKNC"> <img src="https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_92x26.png" alt="Stubmatic donate button"/></a>
+<a href="https://www.paypal.me/amitguptagwl"> <img src="https://funcards.github.io/match-it/static/img/support_paypal.svg" alt="Paypal donate button" width="200"/></a>
 
 ## Features
 
@@ -30,6 +29,7 @@ Fastest HTTP Router
 * You can always have a count on registered routes.
 * Supports versioned routes.
 * You can name regular expressions to increase code redability.
+* Support events
 
 ## Usage
 
@@ -176,13 +176,13 @@ To find a registered route. It returns;
 
 `quickFind()` is faster than `find()`.
 
-## lookup(request, response)
+## lookup(request, response, store)
 
 This method reads *request* object to fetch url, method, and `accept-version` header to find matching route and then run the handler.
 
-The handler should accept: request, response, and params. params is an object of path parameters.
+The handler should accept: request, response, and store. *request._path.params* is an object of path parameters.
 
-Lookup method also save _path, _queryStr, and _hashStr in request object to save re-effort of spliting them.
+Lookup method also save _path, _queryStr, and _hashStr in request object to save re-effort of spliting them. *_path* is an object with two properties: url, params.
 
 ## count
 
@@ -252,6 +252,43 @@ Note that
 * A route can be registered with and without version. In this case, if the `accept-version` header presents then versioned route handler will be returned.
 * Value of `accept-version` header can be : "1.2.0", "1.2.x", "1.x", "*"
 
+### Events
+
+You can register events.
+
+```js
+router.on(eventName, fn);
+```
+
+Following events are supported;
+
+* *request* - When lookup method is called.
+* *found* - Before calling registered handler. (alias: *route* )
+* *not found* - When there is no registered handler. (alias: *default* )
+
+### Mappings
+
+Anumargak supports
+
+* *one-to-one* mapping: One url to one handler
+
+```js
+router.on( "single/url", fn );
+```
+
+* *one-to-many* mapping: One url to series of handlers
+```js
+router.on( "single/url", [fn, fn] );
+```
+* *many-to-one* mapping: Multiple urls to one handler
+```js
+router.on( ["single/url", "other/url" ], fn );
+```
+* *many-to-one* mapping: Multiple urls to series of handlers
+```js
+router.on( ["single/url", "other/url" ], [fn, fn] );
+```
+
 ## Benchmark
 
 | Method | URL type | अनुमार्गक (Anumargak) v1.7.0| Find My Way v1.15.1 |
@@ -276,8 +313,25 @@ Note that
 
 ![chart](./static/chart.png)
 
+## Integration with other web frameworks
 
-### Worth to mention
+[Muneem](https://github.com/node-muneem/muneem) framework is already based on Anumargak. To use it with express js;
+
+```js
+const app = require("express")();
+const Anumargak = require("anumargak");
+const router = new Anumargak();
+
+app.use((req,res) => router.lookup(req, res));
+
+router.on("GET", "/", (req, res) => {
+    //..
+});
+
+app.listen(3002);
+```
+
+## Worth to mention
 
 - **[निम्न (NIMN)](https://github.com/nimndata/spec)** : Save up to 85% network bandwidth and storage space.
 - **[imglab](https://github.com/NaturalIntelligence/imglab)** : Speedup and simplify image labeling / annotation process online. Supports multiple formats, one click annotation, easy interface and much more.
