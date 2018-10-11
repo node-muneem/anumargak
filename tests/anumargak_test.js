@@ -20,15 +20,18 @@ describe("Anumargak ", function () {
         var anumargak = Anumargak();
 
         anumargak.on(["GET", "HEAD"], ["/500", "/502"], () => 30);
+        anumargak.get(["/400", "/404"], () => 30);
 
-        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(2);
+        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(4);
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(2);
-        expect(anumargak.count).toEqual(4);
+        expect(anumargak.count).toEqual(6);
 
         expect(anumargak.quickFind("GET", "/500").handler()).toEqual(30);
         expect(anumargak.quickFind("HEAD", "/500").handler()).toEqual(30);
         expect(anumargak.quickFind("GET", "/502").handler()).toEqual(30);
         expect(anumargak.quickFind("HEAD", "/502").handler()).toEqual(30);
+        expect(anumargak.quickFind("GET", "/400").handler()).toEqual(30);
+        expect(anumargak.quickFind("GET", "/404").handler()).toEqual(30);
     });
 
     it("should register for multiple methods", function () {
