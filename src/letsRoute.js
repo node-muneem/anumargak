@@ -16,7 +16,7 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
     this.namedExpressions.addNamedExpression(arg1, arg2);
 }
 
-const supportedEvents = [ "request", "found", "not found", "route", "default" ];
+const supportedEvents = [ "request", "found", "not found", "route", "default" , "end"];
 
 Anumargak.prototype._onEvent = function (eventName, fn) {
     let _name = eventName.toLowerCase();
@@ -345,6 +345,7 @@ Anumargak.prototype.lookup = async function (req, res) {
         }else{
             result.handler(req, res, result.store);
         }
+        
         this.eventEmitter.emit("end", req, res);
 
     }else{

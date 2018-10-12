@@ -16,13 +16,13 @@ describe("Anumargak events", function () {
             seq.push("route");
         }).on("default", () => {
             seq.push("default");
-        }).on("end", () => {
+        }).on("end", () => { //this will be called after callback
             seq.push("end");
         })
 
         function callback (req){
             expect(req._path.url).toEqual("/this/is/static");
-            expect(seq).toEqual(["request", "found", "route", "end"]);
+            expect(seq).toEqual(["request", "found", "route"]);
             done();
         }
 
