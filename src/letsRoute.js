@@ -488,6 +488,26 @@ Anumargak.prototype.all = function (url, options, fn, store) {
     this.on(httpMethods, url, options, fn, store);
 }
 
+Anumargak.prototype.registeredRoutes = function() {
+    let routes = []
+  
+    // add static routes
+    for (const method of Object.keys(this.staticRoutes)) {
+        for (const url of Object.keys(this.staticRoutes[method])) {
+            routes.push(Object.assign({ method, url }, this.staticRoutes[method][url]))
+        }
+    }
+  
+    // add dynamic routes
+    for (const method of Object.keys(this.dynamicRoutes)) {
+        for (const url of Object.keys(this.dynamicRoutes[method])) {
+            routes.push(Object.assign({ method, url }, this.dynamicRoutes[method][url]))
+        }
+    }
+  
+    return routes
+  }
+
 function Anumargak(options) {
     if (!(this instanceof Anumargak)) return new Anumargak(options);
 
