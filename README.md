@@ -289,6 +289,31 @@ router.on( ["single/url", "other/url" ], fn );
 router.on( ["single/url", "other/url" ], [fn, fn] );
 ```
 
+### Debugging
+
+You can retrieve a list of all registered routes:
+
+```js
+router.registeredRoutes()
+```
+
+will return something like
+
+```js
+[
+    {
+        method: 'GET',
+        url: '/some/url',
+        fn: handler,
+        verMap: undefined,
+        params: undefined,
+        store: undefined
+    }, {
+        ...
+    }
+]
+```
+
 ## Benchmark
 
 | Method | URL type | अनुमार्गक (Anumargak) v1.7.0| Find My Way v1.15.1 |
