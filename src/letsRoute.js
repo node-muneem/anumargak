@@ -36,6 +36,13 @@ Anumargak.prototype._onEvent = function (eventName, fn) {
  * @param {function} fn 
  */
 Anumargak.prototype.on = function (method, url, options, fn, extraData) {
+    if (Array.isArray(url)) {
+        for (var i = 0; i < url.length; i++) {
+            this.on(method, url[i], options, fn, extraData);
+        }
+        return this;
+    }
+
     if (typeof url === 'function') {
         this._onEvent(method, url);
         return this;
