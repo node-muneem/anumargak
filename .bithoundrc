@@ -1,8 +1,0 @@
-{
-  "ignore": [
-    "benchmark",
-    "tests",
-    "static",
-    "tasks"
-    ]
-}
