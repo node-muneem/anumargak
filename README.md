@@ -10,7 +10,7 @@ Fastest HTTP Router
 
 
 <a href="https://www.patreon.com/bePatron?u=9531404" data-patreon-widget-type="become-patron-button"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patron!" width="200" /></a>
-<a href="https://www.paypal.me/amitguptagwl"> <img src="https://funcards.github.io/match-it/static/img/support_paypal.svg" alt="Paypal donate button" width="200"/></a>
+<a href="http://paypal.me/amitkumarguptagwl"> <img src="https://funcards.github.io/match-it/static/img/support_paypal.svg" alt="Paypal donate button" width="200"/></a>
 
 ## Features
 
