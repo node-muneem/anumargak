@@ -53,7 +53,11 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
     }
 
     if (typeof method === "string") {
-        this._on(method, url, options, fn, extraData);
+        if( method.toLocaleLowerCase() === 'all'){
+            this.all(url, options, fn, extraData);
+        }else{
+            this._on(method, url, options, fn, extraData);
+        }
     } else if (Array.isArray(method)) {
         for (var i = 0; i < method.length; i++) {
             this._on(method[i], url, options, fn, extraData);
