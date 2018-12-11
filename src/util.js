@@ -73,9 +73,9 @@ exports.urlSlice = function (url) {
     };
     for (var i = 0, len = url.length; i < len; i++) {
         if ( url[i] === '?' ) {
-            var fragmentIndex = url.indexOf('#', i+1);
-            if (fragmentIndex < 0) {
-                fragmentIndex = url.length;
+            var fragmentIndex = url.indexOf('#', i + 1);
+            if (fragmentIndex < i) {
+                fragmentIndex = len;
             } else {
                 result.hashStr = url.substring(fragmentIndex + 1);
             }
@@ -84,7 +84,7 @@ exports.urlSlice = function (url) {
             break;
         } else if (url[i] === '#') {
             result.url = url.substring(0, i)
-            result.hashStr = url.substring(i+1);
+            result.hashStr = url.substring(i + 1);
             break;
         } else if (url[i] === ';') {
             result.url = url.substring(0, i)
