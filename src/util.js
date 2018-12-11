@@ -66,24 +66,37 @@ exports.getAllRegexMatches = function (string, regex) {
     if (index > 0) return url.substr(0, index);
     return url;
 } */
+
+/* 
+\this\is\sample?q1=val&q2=val3
+\this\is\sample#q1=val&q2=val3
+\this\is\sample?q1=val&q2=val3#q1=val&q2=val3
+\this\is\sample?q1=val&q2=val3#q1=val#q2=val3 //# => q1=val#q2=val3
+*/
 exports.urlSlice = function (url) {
     var result = {
         url : url
     };
     for (var i = 0, len = url.length; i < len; i++) {
-        if( url[i] === '?' ) {
-            result.url = url.substr(0, i)
-            result.queryStr = url.substr(i+1);
+        if ( url[i] === '?' ) {
+            var fragmentIndex = url.indexOf('#', i+1);
+            if (fragmentIndex > i) {
+                result.hashStr = url.substr(fragmentIndex + 1);
+            } else {
+                fragmentIndex = url.length;
+            }
+            result.url = url.substr(0, i);
+            result.queryStr = url.substr(i + 1, fragmentIndex);
             break;
-        }else if( url[i] === '#' ) {
+        } else if (url[i] === '#') {
             result.url = url.substr(0, i)
             result.hashStr = url.substr(i+1);
             break;
-        }else if( url[i] === ';' ) {
+        } else if (url[i] === ';') {
             result.url = url.substr(0, i)
-            result.queryStr = url.substr(i+1);
+            result.queryStr = url.substr(i + 1);
             break;
         }
-      }
+    }
     return result;
 }
