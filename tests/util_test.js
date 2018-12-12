@@ -2,13 +2,6 @@ var util = require('../src/util');
 
 describe("urlSlice", function() {
     var { urlSlice } = util;
-
-    it("should seperate url path from query params and fragment", function() {
-
-        var result = urlSlice("/this/is/sample?q1=val&q2=val3")
-        expect(result.url).toEqual("/this/is/sample");
-
-    });
   
     it("should handle urls with query string", function() {
 
@@ -41,5 +34,18 @@ describe("urlSlice", function() {
         expect(result.hashStr).toEqual("q1=val#q2=val3");
         
     });
+    
+    it("should only slice the query string after the first query params identifier if there are multiple", function() {
 
+        var result = urlSlice("/this/is/sample?q1=val&q2=val3?q1=val#q2=val3");
+        expect(result.queryStr).toEqual("q1=val&q2=val3?q1=val");
+        
+    });
+
+    it("should slice the hash string correctly if a query params identifier appears in the fragment string", function() {
+
+        var result = urlSlice("/this/is/sample#q1=val&q2=val3&q1=val?q2=val3");
+        expect(result.hashStr).toEqual("q1=val&q2=val3&q1=val?q2=val3");
+        
+    });
 });
