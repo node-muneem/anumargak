@@ -73,18 +73,13 @@ exports.urlSlice = function (url) {
     };
     for (var i = 0, len = url.length; i < len; i++) {
         if ( url[i] === '?' ) {
-            // find index of fragment identifier after query params identifier
             var fragmentIndex = url.indexOf('#', i + 1);
-            // if there is no fragment index
             if (fragmentIndex < 0) {
-                // substring will be the remaing length of the string
                 fragmentIndex = len;
             } else {
-                // seperate the hash string after the fragment identifier
                 result.hashStr = url.substring(fragmentIndex + 1);
             }
             result.url = url.substring(0, i);
-            // create substring up to the fragment identifier or to the end of the string
             result.queryStr = url.substring(i + 1, fragmentIndex);
             break;
         } else if (url[i] === '#') {
