@@ -72,7 +72,7 @@ exports.urlSlice = function (url) {
         url : url
     };
     for (var i = 0, len = url.length; i < len; i++) {
-        if ( url[i] === '?' ) {
+        if ( url[i] === '?' || url[i] === ';') {
             var fragmentIndex = url.indexOf('#', i + 1);
             if (fragmentIndex < 0) {
                 fragmentIndex = len;
@@ -86,11 +86,7 @@ exports.urlSlice = function (url) {
             result.url = url.substring(0, i)
             result.hashStr = url.substring(i + 1);
             break;
-        } else if (url[i] === ';') {
-            result.url = url.substring(0, i)
-            result.queryStr = url.substring(i + 1);
-            break;
-        }
+        } 
     }
     return result;
 }
