@@ -333,9 +333,8 @@ app.listen(3002);
 
 ## Worth to mention
 
-- **[निम्न (NIMN)](https://github.com/nimndata/spec)** : Save up to 85% network bandwidth and storage space.
+- **[BigBit standard](http://bigbit.github.io/bigbitjs/)** : A standard to reprent any number in the universe in comparitively less space and without precision loss. A standard to save space to represent any text string in comparision of UTF encoding.
 - **[imglab](https://github.com/NaturalIntelligence/imglab)** : Speedup and simplify image labeling / annotation process online. Supports multiple formats, one click annotation, easy interface and much more.
-- [fast-lorem-ipsum](https://github.com/amitguptagwl/fast-lorem-ipsum) : Generate lorem ipsum words, sentences, paragraph very quickly. Pure JS implementation.
 - [stubmatic](https://github.com/NaturalIntelligence/Stubmatic) : A stub server to mock behaviour of HTTP(s) / REST / SOAP services. You can also mock binary formats.
 - [मुनीम (Muneem)](https://github.com/muneem4node/muneem) : A webframework made for all team members.
 - [शब्दावली (shabdawali)](https://github.com/amitguptagwl/shabdawali) : Amazing human like typing effects beyond your imagination. Check [वार्ता](https://github.com/amitguptagwl/vaarta) for talking/chatting effect.
@@ -345,6 +344,8 @@ app.listen(3002);
 - <img src="https://avatars2.githubusercontent.com/u/7692328?v=4" width="20" height="20"/> [amitguptagwl](https://github.com/amitguptagwl)
 - <img src="https://avatars2.githubusercontent.com/u/10572008?v=4" width="20" height="20"/> [rajeshdh](https://github.com/rajeshdh)
 - <img src="https://avatars3.githubusercontent.com/u/4491530?v=4" width="20" height="20"/> [shuklajay117](https://github.com/shuklajay117)
+- <img src="https://avatars1.githubusercontent.com/u/37378042?v=4" width="20" height="20"/> [Javi Garcia-Bengochea](https://github.com/jgarciabengochea)
+
 
 ## Disclaimer
 
