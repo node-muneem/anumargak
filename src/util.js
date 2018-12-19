@@ -66,24 +66,29 @@ exports.getAllRegexMatches = function (string, regex) {
     if (index > 0) return url.substr(0, index);
     return url;
 } */
+
 exports.urlSlice = function (url) {
     var result = {
         url : url
     };
     for (var i = 0, len = url.length; i < len; i++) {
-        if( url[i] === '?' ) {
-            result.url = url.substr(0, i)
-            result.queryStr = url.substr(i+1);
+        if ( url[i] === '?' || url[i] === ';') {
+            var fragmentIndex = url.indexOf('#', i + 1);
+            if (fragmentIndex < 0) {
+                fragmentIndex = len;
+            } else {
+                result.hashStr = url.substring(fragmentIndex + 1);
+            }
+            result.url = url.substring(0, i);
+            result.queryStr = url.substring(i + 1, fragmentIndex);
             break;
-        }else if( url[i] === '#' ) {
-            result.url = url.substr(0, i)
-            result.hashStr = url.substr(i+1);
+        } else if (url[i] === '#') {
+            result.url = url.substring(0, i)
+            result.hashStr = url.substring(i + 1);
             break;
-        }else if( url[i] === ';' ) {
-            result.url = url.substr(0, i)
-            result.queryStr = url.substr(i+1);
-            break;
-        }
-      }
+        } 
+    }
     return result;
 }
+
+exports.urlSlice("/this/is/sample?q1=val&q2=val3#q2=val2&q3=val4");
