@@ -1,27 +1,27 @@
 'use strict'
 
-var safeRegex = require('safe-regex');
+const safeRegex = require('safe-regex');
 
 function processPathParameters(url, allowUnsafeRegex){
-    var paramNames = [];
-    for(var i=0; i< url.length; i++){
-        var paramStart = url.indexOf(":");
-        if( paramStart === -1) break;
+    const paramNames = [];
+    for(let index=0; index< url.length; index++){
+        const paramStartIndex = url.indexOf(":");
+        if( paramStartIndex === -1) break;
 
-        var paramEnd = readUntil( url, paramStart, ['(', '/', ':'] );
-        var paramName = url.substring(paramStart + 1, paramEnd);
+        const paramEndIndex = readUntil( url, paramStartIndex, ['(', '/', ':'] );
+        let paramName = url.substring(paramStartIndex + 1, paramEndIndex);
         
         var pattern = ""; 
-        var appliedPattern = "([^\\/]+)"; 
-        if( url[paramEnd] === '('){
-            var patternEnd = readUntilClosingParentheses( url, paramEnd)  + 1;
-            pattern = url.substring(paramEnd, patternEnd);
+        let appliedPattern = "([^\\/]+)"; 
+        if( url[paramEndIndex] === '('){
+            const patternEndIndex = readUntilClosingParentheses( url, paramEndIndex)  + 1;
+            pattern = url.substring(paramEndIndex, patternEndIndex);
             if(pattern.indexOf(":") > -1) throw Error("Path parameters are not allowed to have collon :.");
             else if ( !allowUnsafeRegex && !safeRegex(pattern) ){
                 throw Error( `${pattern} seems unsafe.`);
             }
             appliedPattern = pattern;
-            i = patternEnd;
+            index = patternEndIndex;
         }
 
         url = url.replace( ':' + paramName + pattern , appliedPattern);
@@ -37,6 +37,12 @@ function processPathParameters(url, allowUnsafeRegex){
     }
 }
 
+/**
+ * find the starting index of char from given char array
+ * @param {String} str 
+ * @param {Number} start 
+ * @param {Array} charArr 
+ */
 function readUntil(str, start, charArr ){
     for(var i=start + 1; i< str.length; i++){
         if( charArr.indexOf( str[i] ) > -1 ){
