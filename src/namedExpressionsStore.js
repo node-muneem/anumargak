@@ -35,12 +35,12 @@ NamedExpressionsStore.prototype.addNamedExpression = function () {
  */
 NamedExpressionsStore.prototype.replaceNamedExpression= function (url) {
     //var namedExpressionRegexStr = "\\(:(.*?):\\)";
-    var namedExpressionRegexStr = /\(:(.*?):\)/g;
-    var namedExpressionMatches = getAllMatches(url, namedExpressionRegexStr);
+    const namedExpressionRegexStr = /\(:(.*?):\)/g;
+    const namedExpressionMatches = getAllMatches(url, namedExpressionRegexStr);
 
     if (namedExpressionMatches && namedExpressionMatches.length > 0) {
-        for (var i = 0; i < namedExpressionMatches.length; i++) {
-            var matchedNamedKey = namedExpressionMatches[i][1];
+        for (let i = 0; i < namedExpressionMatches.length; i++) {
+            const matchedNamedKey = namedExpressionMatches[i][1];
             if (this.namedExpression[matchedNamedKey]) {
                 url = url.replace(":" + matchedNamedKey + ":", this.namedExpression[matchedNamedKey]);
             } else {
