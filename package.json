@@ -5,7 +5,6 @@
   "main": "./src/letsRoute.js",
   "scripts": {
     "test": "jasmine tests/*test.js",
-    "postinstall": "node tasks/postinstall.js",
     "coverage": "nyc jasmine tests/*test.js; nyc report --reporter=lcov ",
     "updateContributors": "node static/contributors.js"
   },
@@ -32,7 +31,7 @@
   ],
   "devDependencies": {
     "benchmark": "^2.1.4",
-    "find-my-way": "^1.15.4",
+    "find-my-way": "^1.17.0",
     "jasmine": "^3.2.0",
     "jasmine-core": "^3.2.1",
     "mock-req": "^0.2.0",
