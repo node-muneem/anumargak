@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "anumargak": "^2.0.2",
+    "muneem": "^2.4.3",
     "restana": "^2.7.0"
   }
 }
