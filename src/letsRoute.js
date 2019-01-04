@@ -160,7 +160,7 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
         params: params,
         store: extraData
     };
-
+    this._setMinUrlLength( url.length );
     //this.staticRoutes[method][url] = { fn: fn, params: params };
     if (this.ignoreTrailingSlash) {
         if (url.endsWith("/")) {
@@ -182,6 +182,8 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
 }
 
 Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params){
+    this._setMinUrlLength( url.indexOf(":") );
+
     var normalizedUrl = this.normalizeDynamicUrl(url);
     url = normalizedUrl.url;
     
@@ -202,7 +204,6 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
 
 Anumargak.prototype.normalizeDynamicUrl = function (url) {
     var result = processPathParameters(url, this.allowUnsafeRegex);
-    
     if ( this.ignoreTrailingSlash) {
         if (result.url.endsWith("/")) {
             result.url = result.url + "?";
@@ -305,7 +306,7 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 
 
 Anumargak.prototype.quickFind = function (method, url, version) {
-    url = urlSlice(url).url;
+    url = urlSlice(url, this.minUrlLength).url;
     var result = this.staticRoutes[method][url];
     if (result) {
         return {
@@ -329,7 +330,7 @@ Anumargak.prototype.quickFind = function (method, url, version) {
 }
 
 Anumargak.prototype.lookup = async function (req, res) {
-    this.eventEmitter.emit("request", req, res);
+    this.eventEmitter.emit("request", req, res); //unnecessary
     var method = req.method;
     
     var version = req.headers['accept-version'];
@@ -343,7 +344,7 @@ Anumargak.prototype.lookup = async function (req, res) {
     req._hashStr = result.urlData.hashStr;
 
     if(result.handler){
-        this.eventEmitter.emit("found", req, res);
+        this.eventEmitter.emit("found", req, res); //unnecessary
         if(Array.isArray(result.handler) ){
             const len = result.handler.length;
             for(let i=0; i<len;i++){
@@ -357,16 +358,16 @@ Anumargak.prototype.lookup = async function (req, res) {
             result.handler(req, res, result.store);
         }
         
-        this.eventEmitter.emit("end", req, res);
+        this.eventEmitter.emit("end", req, res); //unnecessary
 
     }else{
-        this.eventEmitter.emit("not found", req, res);
+        this.eventEmitter.emit("not found", req, res); //unnecessary
         this.defaultFn(req, res);
     }
 }
 
 Anumargak.prototype.find = function (method, url, version) {
-    const urlData = urlSlice(url);
+    const urlData = urlSlice(url, this.minUrlLength);
     var result = this.staticRoutes[method][urlData.url];
     if (result) {
         return { 
@@ -499,11 +500,16 @@ Anumargak.prototype.all = function (url, options, fn, store) {
     this.on(httpMethods, url, options, fn, store);
 }
 
+Anumargak.prototype._setMinUrlLength =  function (num){
+    if( num < this.minUrlLength) this.minUrlLength = num;
+}
+
 function Anumargak(options) {
     if (!(this instanceof Anumargak)) return new Anumargak(options);
 
     options = options || {};
     this.count = 0;
+    this.minUrlLength = 0;
     this.namedExpressions = namedExpressionsStore();
     this.eventEmitter = new events.EventEmitter();
 

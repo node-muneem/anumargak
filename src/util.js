@@ -67,11 +67,11 @@ exports.getAllRegexMatches = function (string, regex) {
     return url;
 } */
 
-exports.urlSlice = function (url) {
+exports.urlSlice = function (url, startIndex) {
     var result = {
         url : url
     };
-    for (var i = 0, len = url.length; i < len; i++) {
+    for (var i = startIndex, len = url.length; i < len; i++) {
         if ( url[i] === '?' || url[i] === ';') {
             var fragmentIndex = url.indexOf('#', i + 1);
             if (fragmentIndex < 0) {
@@ -91,4 +91,4 @@ exports.urlSlice = function (url) {
     return result;
 }
 
-exports.urlSlice("/this/is/sample?q1=val&q2=val3#q2=val2&q3=val4");
+//exports.urlSlice("/this/is/sample?q1=val&q2=val3#q2=val2&q3=val4");
