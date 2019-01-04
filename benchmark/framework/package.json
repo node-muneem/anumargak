@@ -1,0 +1,22 @@
+{
+  "name": "router-comparision",
+  "version": "0.0.0",
+  "description": "Benchmarking various frameworks with anumargak and find-my-way",
+  "main": "not-found.js",
+  "author": "Amit Gupta (http://amitkumargupta.work)",
+  "license": "MIT",
+  "keywords": [
+    "anumargak",
+    "restana",
+    "find-my-way",
+    "benchmark"
+  ],
+  "devDependencies": {
+    "benchmark": "^2.1.4",
+    "find-my-way": "^1.17.0"
+  },
+  "dependencies": {
+    "anumargak": "^2.0.2",
+    "restana": "^2.7.0"
+  }
+}
