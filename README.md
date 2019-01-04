@@ -331,6 +331,29 @@ router.on("GET", "/", (req, res) => {
 app.listen(3002);
 ```
 
+Use it with [restana](https://github.com/jkyberneees/ana/)
+```js
+const anumargak = require('anumargak')
+const service = require('restana')({
+  routerFactory: (options) => {
+    return anumargak(options)
+  }
+})
+
+service.get("/this/is/static", function(req, res){
+    res.send("Hello");
+})
+
+service.get("/this/is/:dynamic", function(req, res){
+    res.send("Hello");
+})
+
+
+service.start(3001).then((server) => {
+    console.log("server has been started on port 3001")
+});
+```
+
 ## Worth to mention
 
 - **[BigBit standard](http://bigbit.github.io/bigbitjs/)** : A standard to reprent any number in the universe in comparitively less space and without precision loss. A standard to save space to represent any text string in comparision of UTF encoding.
