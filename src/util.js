@@ -68,15 +68,24 @@ exports.getAllRegexMatches = function (string, regex) {
 } */
 
 exports.urlSlice = function (url, startIndex) {
+    for (var i = startIndex, len = url.length; i < len; i++) {
+        if (url[i] === '?' || url[i] === '#' || url[i] === ';') {
+            return url.substring(0, i)
+        }
+    }
+    return url;
+}
+
+exports.urlBreak = function (url, startIndex) {
     var result = {
         url : url
     };
     for (var i = startIndex, len = url.length; i < len; i++) {
         if ( url[i] === '?' || url[i] === ';') {
             var fragmentIndex = url.indexOf('#', i + 1);
-            if (fragmentIndex < 0) {
+            if (fragmentIndex === -1) {
                 fragmentIndex = len;
-            } else {
+            }else {
                 result.hashStr = url.substring(fragmentIndex + 1);
             }
             result.url = url.substring(0, i);
