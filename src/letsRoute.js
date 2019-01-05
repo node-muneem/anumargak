@@ -182,7 +182,8 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
 }
 
 Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params){
-    this._setMinUrlLength( url.indexOf(":") );
+    const indexOfFirstPathParam = url.indexOf(":");
+    this._setMinUrlLength( indexOfFirstPathParam );
 
     var normalizedUrl = this.normalizeDynamicUrl(url);
     url = normalizedUrl.url;
@@ -316,13 +317,14 @@ Anumargak.prototype.quickFind = function (method, url, version) {
     }else {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
-            if (this.dynamicRoutes[method][urlRegex[i]].regex.exec(url)){
-                var result = this.dynamicRoutes[method][ urlRegex[i] ];
+            var route = this.dynamicRoutes[method][ urlRegex[i] ];
+            var matches = route.regex.exec( url );
+            if ( matches ){
                 return {
-                        handler: this.getHandler( result, version),
-                        //params: result.params,
-                        store:    result.store
-                    }
+                    handler: this.getHandler( route, version),
+                    //params: result.params,
+                    store:    route.store
+                }
             }
         }
     }
@@ -380,18 +382,16 @@ Anumargak.prototype.find = function (method, url, version) {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
             var route = this.dynamicRoutes[method][urlRegex[i]];
-            var matches = route.regex.exec(urlData.url);
+            var matches = route.regex.exec( urlData.url );
             var params = route.params;
             if (matches) {
                 for (var m_i = 1; m_i < matches.length; m_i++) {
                     params[route.paramNames[m_i - 1]] = matches[m_i];
                 }
-
-                var result = this.dynamicRoutes[method][urlRegex[i]];
                 return { 
-                    handler: this.getHandler(result, version),
+                    handler: this.getHandler(route, version),
                     params: params,
-                    store: result.store,
+                    store: route.store,
                     urlData : urlData
                 };
             }
