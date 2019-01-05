@@ -306,24 +306,34 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 }
 
 
-Anumargak.prototype.quickFind = function (method, url, version) {
-    url = urlSlice(url, this.minUrlLength);
-    var result = this.staticRoutes[method][url];
+Anumargak.prototype.quickFind = function (req, res) {
+    const method = req.method;
+    const version = req.headers['accept-version'];
+
+    const url = urlSlice(req.url, this.minUrlLength);
+    let result = this.staticRoutes[method][url];
     if (result) {
-        return {
-            handler: this.getHandler(result, version),
-            store : result.store
+        const handler = this.getHandler(result, version);
+        if( !handler ) return null;
+        else{
+            return {
+                handler: handler,
+                store : result.store
+            }
         }
     }else {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
-            var route = this.dynamicRoutes[method][ urlRegex[i] ];
-            var matches = route.regex.exec( url );
+            result = this.dynamicRoutes[method][ urlRegex[i] ];
+            var matches = result.regex.exec( url );
             if ( matches ){
-                return {
-                    handler: this.getHandler( route, version),
-                    //params: result.params,
-                    store:    route.store
+                const handler = this.getHandler(result, version);
+                if( !handler ) return null;
+                else{
+                    return {
+                        handler: handler,
+                        store : result.store
+                    }
                 }
             }
         }
@@ -334,7 +344,6 @@ Anumargak.prototype.quickFind = function (method, url, version) {
 Anumargak.prototype.lookup = async function (req, res) {
     this.eventEmitter.emit("request", req, res); //unnecessary
     var method = req.method;
-    
     var version = req.headers['accept-version'];
 
     var result = this.find(method, req.url, version);
@@ -370,14 +379,22 @@ Anumargak.prototype.lookup = async function (req, res) {
 
 Anumargak.prototype.find = function (method, url, version) {
     const urlData = urlBreak(url, this.minUrlLength);
-    var result = this.staticRoutes[method][urlData.url];
+    let result = this.staticRoutes[method][urlData.url];
     if (result) {
-        return { 
-            handler: this.getHandler(result, version), 
-            params: result.params,
-            store: result.store,
-            urlData : urlData
-        };
+        const handler = this.getHandler(result, version);
+        if( !handler ) {
+            return {
+                urlData : urlData
+            };
+        }else{
+            return { 
+                handler: handler,
+                params: result.params,
+                store: result.store,
+                urlData : urlData
+            };
+        }
+
     }else {
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
@@ -385,15 +402,22 @@ Anumargak.prototype.find = function (method, url, version) {
             var matches = route.regex.exec( urlData.url );
             var params = route.params;
             if (matches) {
-                for (var m_i = 1; m_i < matches.length; m_i++) {
-                    params[route.paramNames[m_i - 1]] = matches[m_i];
+                const handler = this.getHandler(route, version);
+                if( !handler ) {
+                    return {
+                        urlData : urlData
+                    };
+                }else{
+                    for (var m_i = 1; m_i < matches.length; m_i++) {
+                        params[route.paramNames[m_i - 1]] = matches[m_i];
+                    }
+                    return { 
+                        handler: handler,
+                        params: params,
+                        store: route.store,
+                        urlData : urlData
+                    };
                 }
-                return { 
-                    handler: this.getHandler(route, version),
-                    params: params,
-                    store: route.store,
-                    urlData : urlData
-                };
             }
         }
     }
@@ -404,6 +428,7 @@ Anumargak.prototype.find = function (method, url, version) {
 
 Anumargak.prototype.getHandler = function (route, version) {
     if(version){
+        if( !route.verMap ) return;
         return route.verMap.get(version);
     }else{
         return route.fn;
