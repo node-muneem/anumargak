@@ -1,16 +1,16 @@
 'use strict'
 
-var getFirstMatche = require("./util").getFirstMatche;
-var getAllMatches = require("./util").getAllMatches;
-var doesMatch = require("./util").doesMatch;
-var urlSlice = require("./util").urlSlice;
-var namedExpressionsStore = require("./namedExpressionsStore");
-var semverStore = require("./semver-store");
-var processPathParameters = require("./../src/paramsProcessor");
-var events = require('events');
+const getFirstMatche = require("./util").getFirstMatche;
+const getAllMatches = require("./util").getAllMatches;
+const doesMatch = require("./util").doesMatch;
+const {urlSlice, urlBreak} = require("./util");
+const namedExpressionsStore = require("./namedExpressionsStore");
+const semverStore = require("./semver-store");
+const processPathParameters = require("./../src/paramsProcessor");
+const events = require('events');
 
-var http = require('http')
-var httpMethods = http.METHODS;
+const http = require('http')
+const httpMethods = http.METHODS;
 
 Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
     this.namedExpressions.addNamedExpression(arg1, arg2);
@@ -307,7 +307,7 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 
 
 Anumargak.prototype.quickFind = function (method, url, version) {
-    url = urlSlice(url, this.minUrlLength).url;
+    url = urlSlice(url, this.minUrlLength);
     var result = this.staticRoutes[method][url];
     if (result) {
         return {
@@ -369,7 +369,7 @@ Anumargak.prototype.lookup = async function (req, res) {
 }
 
 Anumargak.prototype.find = function (method, url, version) {
-    const urlData = urlSlice(url, this.minUrlLength);
+    const urlData = urlBreak(url, this.minUrlLength);
     var result = this.staticRoutes[method][urlData.url];
     if (result) {
         return { 

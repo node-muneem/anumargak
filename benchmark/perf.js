@@ -53,40 +53,40 @@ console.log(findMyWay.find("GET","/login/as/user/auth2").handler); */
 
 suite
     .add("FIND: Anumargak static", function() {
-        anumargak.find("GET","/this/is/static");
+        anumargak.quickFind("GET","/this/is/static");
     })
     .add("FIND: find my way static", function() {
         findMyWay.find("GET","/this/is/static");
     })
     .add("FIND: Anumargak dynamic", function() {
-        anumargak.find("GET","/this/is/dynamic/with/123rest");
+        anumargak.quickFind("GET","/this/is/dynamic/with/123rest");
     })
     .add("FIND: find my way dynamic", function() {
         findMyWay.find("GET","/this/is/dynamic/with/123rest");
     })
     .add("FIND: Anumargak dynamic with query param", function() {
-        anumargak.find("GET","/this/is/dynamic/with/123rest?ignore=me");
+        anumargak.quickFind("GET","/this/is/dynamic/with/123rest?ignore=me");
     })
     .add("FIND: find my way dynamic with query param", function() {
         findMyWay.find("GET","/this/is/dynamic/with/123rest?ignore=me");
     })
     .add("FIND: Anumargak enum", function() {
-        anumargak.find("GET","/login/as/user/auth2");
+        anumargak.quickFind("GET","/login/as/user/auth2");
     })
     .add("FIND: find my way enum", function() {
         findMyWay.find("GET","/login/as/user/auth2");
     })
     .add("FIND: Anumargak wildchar", function() {
-        anumargak.find("GET","/this/is/wild/and/*");
+        anumargak.quickFind("GET","/this/is/wild/and/*");
     })
     .add("FIND: find my way wildchar", function() {
         findMyWay.find("GET","/this/is/wild/and/*");
     })
     .add("FIND: Anumargak versioned static", function() {
-        anumargak.find("GET","/this/is/versioned/static", "1.2.0");
-        anumargak.find("GET","/this/is/versioned/static", "1.2.x");
-        anumargak.find("GET","/this/is/versioned/static", "1.x");
-        anumargak.find("GET","/this/is/versioned/static", "*");
+        anumargak.quickFind("GET","/this/is/versioned/static", "1.2.0");
+        anumargak.quickFind("GET","/this/is/versioned/static", "1.2.x");
+        anumargak.quickFind("GET","/this/is/versioned/static", "1.x");
+        anumargak.quickFind("GET","/this/is/versioned/static", "*");
     })
     .add("FIND: find my way versioned static", function() {
         findMyWay.find("GET","/this/is/versioned/static", "1.2.0");
@@ -95,10 +95,10 @@ suite
         findMyWay.find("GET","/this/is/versioned/static", "*");
     })
     .add("FIND: Anumargak versioned dynamic", function() {
-        anumargak.find("GET","/this/is/versioned/1", "1.2.0");
-        anumargak.find("GET","/this/is/versioned/1", "1.2.x");
-        anumargak.find("GET","/this/is/versioned/1", "1.x");
-        anumargak.find("GET","/this/is/versioned/1", "*");
+        anumargak.quickFind("GET","/this/is/versioned/1", "1.2.0");
+        anumargak.quickFind("GET","/this/is/versioned/1", "1.2.x");
+        anumargak.quickFind("GET","/this/is/versioned/1", "1.x");
+        anumargak.quickFind("GET","/this/is/versioned/1", "*");
     })
     .add("FIND: find my way versioned dynamic", function() {
         findMyWay.find("GET","/this/is/versioned/1", "1.2.0");
