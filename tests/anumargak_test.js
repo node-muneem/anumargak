@@ -3,48 +3,53 @@ var Anumargak = require("./../src/letsRoute");
 describe("Anumargak ", function () {
 
     it("should find static url", function () {
-        var anumargak = Anumargak();
+        var router = Anumargak();
 
-        anumargak.on("GET", "/this/is/static", () => 30);
-        anumargak.on("HEAD", "/this/is/static", () => 30);
+        router.on("GET", "/this/is/static", () => 30);
+        router.on("HEAD", "/this/is/static", () => 30);
 
-        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
-        expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
-        expect(anumargak.count).toEqual(2);
+        expect(Object.keys(router.staticRoutes.GET).length).toEqual(1);
+        expect(Object.keys(router.staticRoutes.HEAD).length).toEqual(1);
+        expect(router.count).toEqual(2);
 
-        expect(anumargak.quickFind("GET", "/this/is/static").handler()).toEqual(30);
-        expect(anumargak.quickFind("HEAD", "/this/is/static").handler()).toEqual(30);
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/static" }).handler()).toEqual(30);
+        expect( router.quickFind( { method: "HEAD", headers: {}, url: "/this/is/static" }).handler()).toEqual(30);
+
     });
 
     it("should register for multiple urls", function () {
-        var anumargak = Anumargak();
+        var router = Anumargak();
 
-        anumargak.on(["GET", "HEAD"], ["/500", "/502"], () => 30);
-        anumargak.get(["/400", "/404"], () => 30);
+        router.on(["GET", "HEAD"], ["/500", "/502"], () => 30);
+        router.get(["/400", "/404"], () => 30);
 
-        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(4);
-        expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(2);
-        expect(anumargak.count).toEqual(6);
+        expect(Object.keys(router.staticRoutes.GET).length).toEqual(4);
+        expect(Object.keys(router.staticRoutes.HEAD).length).toEqual(2);
+        expect(router.count).toEqual(6);
 
-        expect(anumargak.quickFind("GET", "/500").handler()).toEqual(30);
-        expect(anumargak.quickFind("HEAD", "/500").handler()).toEqual(30);
-        expect(anumargak.quickFind("GET", "/502").handler()).toEqual(30);
-        expect(anumargak.quickFind("HEAD", "/502").handler()).toEqual(30);
-        expect(anumargak.quickFind("GET", "/400").handler()).toEqual(30);
-        expect(anumargak.quickFind("GET", "/404").handler()).toEqual(30);
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/500" }).handler()).toEqual(30);
+        expect( router.quickFind( { method: "HEAD", headers: {}, url: "/500" }).handler()).toEqual(30);
+
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/502" }).handler()).toEqual(30);
+        expect( router.quickFind( { method: "HEAD", headers: {}, url: "/502" }).handler()).toEqual(30);
+
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/400" }).handler()).toEqual(30);
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/404" }).handler()).toEqual(30);
+
     });
 
     it("should register for multiple methods", function () {
-        var anumargak = Anumargak();
+        var router = Anumargak();
 
-        anumargak.on(["GET", "HEAD"], "/this/is/static", () => 30);
+        router.on(["GET", "HEAD"], "/this/is/static", () => 30);
 
-        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
-        expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
-        expect(anumargak.count).toEqual(2);
+        expect(Object.keys(router.staticRoutes.GET).length).toEqual(1);
+        expect(Object.keys(router.staticRoutes.HEAD).length).toEqual(1);
+        expect(router.count).toEqual(2);
 
-        expect(anumargak.quickFind("GET", "/this/is/static").handler()).toEqual(30);
-        expect(anumargak.quickFind("HEAD", "/this/is/static").handler()).toEqual(30);
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/static" }).handler()).toEqual(30);
+        expect( router.quickFind( { method: "HEAD", headers: {}, url: "/this/is/static" }).handler()).toEqual(30);
+
     });
 
     it("should error when invalid method type is given", function () {
@@ -81,17 +86,17 @@ describe("Anumargak ", function () {
     });
 
     it("should set dynamic url", function () {
-        var anumargak = Anumargak();
+        var router = Anumargak();
 
-        anumargak.on("GET", "/this/is/:dynamic", () => 30);
-        anumargak.on("HEAD", "/this/is/:dynamic", () => 30);
+        router.on("GET", "/this/is/:dynamic", () => 30);
+        router.on("HEAD", "/this/is/:dynamic", () => 30);
 
-        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
-        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
-        expect(anumargak.count).toEqual(2);
+        expect(Object.keys(router.dynamicRoutes.GET).length).toEqual(1);
+        expect(Object.keys(router.dynamicRoutes.HEAD).length).toEqual(1);
+        expect(router.count).toEqual(2);
 
-        expect(anumargak.quickFind("GET", "/this/is/dynamic").handler()).toEqual(30);
-        expect(anumargak.quickFind("HEAD", "/this/is/dynamic").handler()).toEqual(30);
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/dynamic" }).handler()).toEqual(30);
+        expect( router.quickFind( { method: "HEAD", headers: {}, url: "/this/is/dynamic" }).handler()).toEqual(30);
     });
 
     it("should set multiple urls under the same route ", function () {
@@ -352,13 +357,14 @@ describe("Anumargak ", function () {
     });
 
     it("should return default route", function () {
-        var anumargak = Anumargak({
+        var router = Anumargak({
             defaultRoute: () => 50
         });
 
-        anumargak.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
+        router.on("GET", "/this/is/:dynamic/with/:pattern(\\d+)/", () => 30);
 
-        expect( anumargak.quickFind("GET", "/this/is/not/matching") ).toEqual( null );
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/not/matching" }) ).toEqual(null);
+
     });
 
     it("should run default route", function (done) {
