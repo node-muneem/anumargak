@@ -219,6 +219,10 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
     let matchingPath = true;
     for(; pathIndex < spilitedUrl.length; pathIndex++ ){
         const urlPart = spilitedUrl[pathIndex];
+        if( this.ignoreTrailingSlash && pathIndex + 1 === spilitedUrl.length &&  urlPart === "/" ){
+            break;
+        }
+
         const wildCardIndex = urlPart.indexOf("*");
         let currentNode;
         if( wildCardIndex !== -1){//wildchar
@@ -232,6 +236,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 }
                 currentNode = node[urlPart];
                 currentNode[parent] = node;
+                node[haveChild] = true;
                 node = currentNode;
 
                 matchingPath = false;
@@ -259,6 +264,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 currentNode.pattern = pathParams.pattern;
                 currentNode.paramNames = pathParams.paramNames;
                 currentNode[parent] = node;
+                node[haveChild] = true;
                 matchingPath = false;
             }
         }else{//fixed
@@ -266,6 +272,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 node[ urlPart] = {};
                 currentNode = node[urlPart]; 
                 currentNode[parent] = node;
+                node[haveChild] = true;
                 matchingPath = false;  
             }else{
                 currentNode = node[ urlPart ];
@@ -278,7 +285,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
         if( pathIndex + 1  !== spilitedUrl.length){
             /* if( !currentNode.next ) currentNode.next = {};
             node = currentNode.next; */
-            currentNode[haveChild] = true;
+            //currentNode[haveChild] = true;
         }else{
             //node = currentNode;
             break;
@@ -412,6 +419,9 @@ Anumargak.prototype.quickFind = function (req, res) {
 
         for(; pathIndex < spilitedUrl.length; pathIndex++ ){
             const urlPart = spilitedUrl[pathIndex].val;
+            if( this.ignoreTrailingSlash && pathIndex + 1 === spilitedUrl.length &&  urlPart === "/" ){
+                break;
+            }
 
             if( node[ urlPart ] ){
                 if( node [urlPart][haveChild] )
@@ -510,6 +520,9 @@ Anumargak.prototype.find = function (method, url, version) {
         for(; pathIndex < spilitedUrl.length; pathIndex++ ){
             const urlPart = spilitedUrl[pathIndex].val;
 
+            if( this.ignoreTrailingSlash && pathIndex + 1 === spilitedUrl.length &&  urlPart === "/" ){
+                break;
+            }
             if( node[ urlPart ] ){
                 if( node [urlPart][haveChild] )
                     node = node [urlPart];
