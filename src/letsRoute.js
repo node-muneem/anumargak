@@ -415,6 +415,7 @@ Anumargak.prototype.quickFind = function (req, res) {
     if (result) {
         return this.buildQuickResponse(result, version);
     }else {
+        //TODO: use breakUrl
         const spilitedUrl = breakUrlInPartsObject(url);
         let node = this.dynamicRoutes[method]; //root node
         let pathIndex = 0;
@@ -673,13 +674,12 @@ Anumargak.prototype.off = function (method, url, version, silence) {
         let pathIndex = 0;
         for(; pathIndex < spilitedUrl.length; pathIndex++ ){
             const urlPart = spilitedUrl[pathIndex].val;
-            
-            if( node[ urlPart ] ){
+
+            if( node[ urlPart ] ){ //fixed & wild-card
                 if( node [urlPart][haveChild] ){
                     node = node [urlPart];
                 }else{
-                    matchingUrlPart = urlPart;
-                    //parentNode = node;
+                    //matchingUrlPart = urlPart;
                     matchingNode = node [urlPart]
                     break;
                 }
@@ -690,19 +690,18 @@ Anumargak.prototype.off = function (method, url, version, silence) {
                 for( let k_i = 0; k_i < patternKeys.length; k_i++) {
                     const savedPattern = node[ patternKeys[k_i] ];
                     
-                    if( savedPattern.pattern === pathParams.pattern ){
+                    if( savedPattern[kPattern] === pathParams.pattern ){
                         if( savedPattern[haveChild] )
                             node = savedPattern;
                         else{
-                            matchingUrlPart = patternKeys[k_i];
-                            //parentNode = node;
+                            //matchingUrlPart = patternKeys[k_i];
                             matchingNode = savedPattern;
                             break;
                         }
                     }
                 }//end for
             }
-        }//edn for each url part
+        }//end for each url part
     }//end dynamic url
 
     if(matchingNode){

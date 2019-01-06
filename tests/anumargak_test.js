@@ -105,7 +105,7 @@ describe("Anumargak ", function () {
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30)
         anumargak.on("HEAD", "/this/is/:dynamic/2", () => 50)
 
-        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(2);
+        expect(Object.keys(anumargak.dynamicRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
         expect(anumargak.find("HEAD", "/this/is/dynamic").handler()).toEqual(30);
