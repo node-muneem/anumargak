@@ -16,8 +16,12 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
     this.namedExpressions.addNamedExpression(arg1, arg2);
 }
 
-const parent = Symbol('parent');
+const kParent = Symbol('parent');
 const haveChild = Symbol('haveChild');
+const kRegex = Symbol('kRegex');
+const kPattern = Symbol('kPattern');
+const kParamNames = Symbol('kParamNames');
+const kStartsWith = Symbol('kStartsWith');
 
 const supportedEvents = [ "request", "found", "not found", "route", "default" , "end"];
 
@@ -231,11 +235,10 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 break;
             }else{
                 //it is hard to find similar pattern so allow registration
-                node[urlPart] = {
-                    startsWith: urlPart.substr(0, wildCardIndex)
-                }
+                node[urlPart] = {};
+                node[urlPart][kStartsWith] = urlPart.substr(0, wildCardIndex);
                 currentNode = node[urlPart];
-                currentNode[parent] = node;
+                currentNode[kParent] = node;
                 node[haveChild] = true;
                 node = currentNode;
 
@@ -253,17 +256,16 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                     const savedPattern = patternKeys[k_i];
                     if( doesPatternMatch(savedPattern, pathParams.pattern) ){
                         currentNode = node[ savedPattern ];
-                        
                     }
                 }
             }
             if( !currentNode) {
                 node[pathParams.pattern] = {};
                 currentNode = node[pathParams.pattern];
-                currentNode.regex = new RegExp(`^${pathParams.pattern}$`);
-                currentNode.pattern = pathParams.pattern;
-                currentNode.paramNames = pathParams.paramNames;
-                currentNode[parent] = node;
+                currentNode[kRegex] = new RegExp(`^${pathParams.pattern}$`);
+                currentNode[kPattern] = pathParams.pattern;
+                currentNode[kParamNames] = pathParams.paramNames;
+                currentNode[kParent] = node;
                 node[haveChild] = true;
                 matchingPath = false;
             }
@@ -271,7 +273,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
             if( !node[ urlPart] ) {
                 node[ urlPart] = {};
                 currentNode = node[urlPart]; 
-                currentNode[parent] = node;
+                currentNode[kParent] = node;
                 node[haveChild] = true;
                 matchingPath = false;  
             }else{
@@ -432,14 +434,19 @@ Anumargak.prototype.quickFind = function (req, res) {
                 }
             }else{ // dymapic path param
                 const patternKeys =  Object.keys(node);
-                for( let k_i = 0; k_i < patternKeys.length; k_i++) {
+                let k_i = 0;
+                for( ; k_i < patternKeys.length; k_i++) {
                     const savedPattern = node[ patternKeys[k_i] ];
-                    if(savedPattern.startsWith) {//wildchar
-                        if(urlPart.startsWith (savedPattern.startsWith) ){//wildcard
+
+                    if( savedPattern === urlPart){ //fixed
+                        node = savedPattern;
+                        break;
+                    }else if(savedPattern[kStartsWith]) {//wildchar
+                        if(urlPart.startsWith (savedPattern[kStartsWith]) ){//wildcard
                             return this.buildQuickResponse(savedPattern, version);
                         }
-                    }else{
-                        const matches = savedPattern.regex.test( urlPart)
+                    }else if(savedPattern[kRegex]){//dynamic
+                        const matches = savedPattern[kRegex].test( urlPart)
                         if( matches ){
                             if( savedPattern[haveChild] )
                                 node = savedPattern;
@@ -449,6 +456,9 @@ Anumargak.prototype.quickFind = function (req, res) {
                             break;
                         }
                     }
+                }
+                if(k_i === patternKeys.length){//didn't match the given route
+                    return null;
                 }
             }
         }
@@ -532,18 +542,22 @@ Anumargak.prototype.find = function (method, url, version) {
                 }
             }else{ // dymapic path param
                 const patternKeys =  Object.keys(node);
-                for( let k_i = 0; k_i < patternKeys.length; k_i++) {
+                let k_i = 0;
+                for( ; k_i < patternKeys.length; k_i++) {
                     const savedPattern = node[ patternKeys[k_i] ];
-                    if(savedPattern.startsWith) {//wildchar
-                        if(urlPart.startsWith (savedPattern.startsWith) ){//wildcard
-                            params["*"] = urlData.url.substring( spilitedUrl[pathIndex].index + savedPattern.startsWith.length );
+                    if( savedPattern === urlPart){ //fixed
+                        node = savedPattern;
+                        break;
+                    }else if(savedPattern[kStartsWith] ) {//wildchar
+                        if(urlPart.startsWith (savedPattern[kStartsWith] ) ){//wildcard
+                            params["*"] = urlData.url.substring( spilitedUrl[pathIndex].index + savedPattern[kStartsWith].length );
                             return this.buildResponse(savedPattern, version, urlData, params);
                         }
-                    }else{//dynamic pattern
-                        const matches = savedPattern.regex.exec( urlPart);
+                    }else if(savedPattern[kRegex]){//dynamic pattern
+                        const matches = savedPattern[kRegex].exec( urlPart);
                         if( matches ){
                             for (var m_i = 1; m_i < matches.length; m_i++) {
-                                params[ savedPattern.paramNames[m_i - 1] ] = matches[m_i];
+                                params[ savedPattern[kParamNames][m_i - 1] ] = matches[m_i];
                             }
                             if( savedPattern[haveChild] )
                                 node = savedPattern;
@@ -552,6 +566,11 @@ Anumargak.prototype.find = function (method, url, version) {
                             }
                             break;
                         }
+                    }
+                }
+                if(k_i === patternKeys.length){//didn't match the given route
+                    return {
+                        urlData : urlData
                     }
                 }
             }
@@ -706,11 +725,11 @@ Anumargak.prototype.off = function (method, url, version, silence) {
             else{//remove complete branch in case of dynamic URLs
 
                 let key;
-                while( matchingNode[parent] ){
-                    const keys = Object.keys(matchingNode[parent]);
+                while( matchingNode[kParent] ){
+                    const keys = Object.keys(matchingNode[kParent]);
                     if( keys.length === 1){
                         key = keys[0];
-                        matchingNode = matchingNode[parent];
+                        matchingNode = matchingNode[kParent];
                     }else{
                         break;
                     }
