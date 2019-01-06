@@ -100,4 +100,39 @@ exports.urlBreak = function (url, startIndex) {
     return result;
 }
 
+exports.breakUrlInPartsObject = function (url){
+    const arr = [];
+    let lastIndex = 0;
+    for (var i = 1, len = url.length; i < len; i++) {
+        if (url[i] === "/") {
+            arr.push( {
+                index: lastIndex,
+                val: url.substring(lastIndex, i)
+            });
+            lastIndex = i;
+        }
+    }
+    arr.push( {
+        index: lastIndex,
+        val: url.substring(lastIndex, i)
+    } );
+    return arr;
+}
+
+/**
+ * A URL must start with "/"
+ */
+exports.breakInUrlParts = function (url){
+    const arr = [];
+    let lastIndex = 0;
+    for (var i = 1, len = url.length; i < len; i++) {
+        if (url[i] === "/") {
+            arr.push( url.substring(lastIndex, i) );
+            lastIndex = i;
+        }
+    }
+    arr.push( url.substring(lastIndex, i) );
+    return arr;
+}
+
 //exports.urlSlice("/this/is/sample?q1=val&q2=val3#q2=val2&q3=val4");

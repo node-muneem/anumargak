@@ -2,11 +2,11 @@
 
 const getFirstMatche = require("./util").getFirstMatche;
 const getAllMatches = require("./util").getAllMatches;
-const doesMatch = require("./util").doesMatch;
-const {urlSlice, urlBreak} = require("./util");
+const doesPatternMatch = require("./util").doesMatch;
+const {urlSlice, urlBreak, breakUrlInPartsObject, breakInUrlParts} = require("./util");
 const namedExpressionsStore = require("./namedExpressionsStore");
 const semverStore = require("./semver-store");
-const processPathParameters = require("./../src/paramsProcessor");
+const { processPathParameters, processPathParameter} = require("./../src/paramsProcessor");
 const events = require('events');
 
 const http = require('http')
@@ -92,9 +92,10 @@ Anumargak.prototype.normalizeUrl = function (url) {
 
     url = this.namedExpressions.replaceNamedExpression(url);
 
-    var matches = getFirstMatche(url, wildcardRegexStr);
-    if (matches) {
-        url = url.substr(0, matches.index + 1) + matches[0].substr(1, matches[0].length - 2) +":*(.*)"
+    //check for wild-char
+    const wildCharIndex = url.indexOf('*');
+    if( wildCharIndex !== -1){
+        url = url.substring(0, wildCharIndex+1);
     }
 
     return url;
@@ -109,10 +110,10 @@ Anumargak.prototype._addRoute = function (method, url, options, fn, extraData, p
     if( done ) { //All the enumerated URLs are registered
         return;
     }else{
-        if (url.indexOf(":") > 0) {//DYNAMIC
-            this._addDynamic(method, url, options, fn, extraData, params);
-        } else {//STATIC
+        if (url.indexOf(":") === -1 && url.indexOf("*") === -1) {//STATIC
             this._addStatic(method, url, options, fn, extraData, params);
+        } else {//DYNAMIC
+            this._addDynamic(method, url, options, fn, extraData, params);
         }
     }
 }
@@ -150,56 +151,154 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData
 }
 
 Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params){
-    this.checkIfRegistered(this.staticRoutes, method, url, options, fn);
-
-    this.count++;
-    var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
-    this.staticRoutes[method][url] = { 
-        fn : routeHandlers.handler,
-        verMap: routeHandlers.verMap, 
-        params: params,
-        store: extraData
-    };
+    
+    this.__addStatic(method, url, options, fn, extraData, params);
     this._setMinUrlLength( url.length );
-    //this.staticRoutes[method][url] = { fn: fn, params: params };
+    this.count++;
     if (this.ignoreTrailingSlash) {
         if (url.endsWith("/")) {
             url = url.substr(0, url.length - 1);
         } else {
             url = url + "/";
         }
-        
-        var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
-        this.staticRoutes[method][url] = { 
-            fn : routeHandlers.handler,
-            verMap: routeHandlers.verMap, 
-            params: params,
-            store: extraData
-        };
-
+        this.__addStatic(method, url, options, fn, extraData, params);
     }
 
 }
 
+Anumargak.prototype.__addStatic = function(method, url, options, fn, extraData, params){
+    const node = this.staticRoutes[method];
+    const data = {
+        handler: fn,
+        extraData: extraData
+    }
+
+    if( node[url] ){ //matching route
+        if(options.version){
+            if(node[url].verMap){
+                if(node[url].verMap.get(options.version)){
+                    throw Error(`Trying to register a duplicate route: ${url}, ${options.version}`);
+                }else{
+                    node[url].verMap.set( options.version, data );    
+                }
+            }else{
+                node[url].verMap = new semverStore();
+                node[url].verMap.set( options.version, data );
+            }
+        }else{
+            throw Error(`Trying to register a duplicate route: ${url}`);
+        }
+    }else{
+        node[url] = {
+            data : data
+        }
+    }
+    node[url].params = params;
+}
+
 Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params){
-    const indexOfFirstPathParam = url.indexOf(":");
+    const data = {
+        handler: fn,
+        extraData: extraData
+    };
+
+    let indexOfFirstPathParam = url.indexOf(":");
+    if( indexOfFirstPathParam === -1){ // wildcard without param
+        indexOfFirstPathParam = url.indexOf("*");
+    }
     this._setMinUrlLength( indexOfFirstPathParam );
 
-    var normalizedUrl = this.normalizeDynamicUrl(url);
-    url = normalizedUrl.url;
-    
-    this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
-    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, fn);
-    
-    var regex = new RegExp("^" + url + "$");
-    this.dynamicRoutes[method][url] = { 
-        fn: routeHandlers.handler,
-        regex: regex, 
-        verMap: routeHandlers.verMap, 
-        params: params || {}, 
-        paramNames: normalizedUrl.paramNames ,
-        store: extraData
-    };  
+    const spilitedUrl = breakInUrlParts(url);
+    let node = this.dynamicRoutes[method]; //root node
+    let pathIndex = 0;
+    //if( spilitedUrl[0] === "") pathIndex = 1;
+
+    let matchingPath = true;
+    for(; pathIndex < spilitedUrl.length; pathIndex++ ){
+        const urlPart = spilitedUrl[pathIndex];
+        const wildCardIndex = urlPart.indexOf("*");
+        let currentNode;
+        if( wildCardIndex !== -1){//wildchar
+            if( node[urlPart] 
+                || (urlPart === "/*" && ( node.next || Object.keys(node).length > 0)  ) //it'll override all the paths of this depth
+            ){ 
+                break;
+            }else{
+                //it is hard to find similar pattern so allow registration
+                node[urlPart] = {
+                    startsWith: urlPart.substr(0, wildCardIndex)
+                }
+                node = node[urlPart];
+                matchingPath = false;
+            }
+            break;
+        }else if( urlPart[1] === ":"){//dynamic pattern
+            const pathParams = processPathParameter( urlPart, this.allowUnsafeRegex );
+            
+            if( node[ pathParams.pattern ] ) { //exact match present
+                currentNode = node[ pathParams.pattern ]
+            }else{ //similar pattern
+                const patternKeys =  Object.keys(node);
+                for( let k_i = 0; k_i < patternKeys.length; k_i++) {
+                    const savedPattern = patternKeys[k_i];
+                    if( doesPatternMatch(savedPattern, pathParams.pattern) ){
+                        currentNode = node[ savedPattern ];
+                        
+                    }
+                }
+            }
+            if( !currentNode) {
+                node[pathParams.pattern] = {};
+                currentNode = node[pathParams.pattern];
+                currentNode.regex = new RegExp(`^${pathParams.pattern}$`);
+                currentNode.pattern = pathParams.pattern;
+                currentNode.paramNames = pathParams.paramNames;
+                matchingPath = false;
+            }
+        }else{//fixed
+            if( !node[ urlPart] ) {
+                node[ urlPart] = {};
+                currentNode = node[urlPart]; 
+                matchingPath = false;  
+            }else{
+                currentNode = node[ urlPart ];
+            }
+        }
+
+        //move next
+        if( pathIndex + 1  !== spilitedUrl.length){
+            if( !currentNode.next ) currentNode.next = {};
+            node = currentNode.next;
+        }else{
+            node = currentNode;
+            break;
+        }
+    }
+
+    if( matchingPath ){ //duplicate path
+        if(options.version){
+            if(node.verMap){
+                if(node.verMap.get(options.version)){
+                    throw Error(`Trying to register a duplicate route: ${url}, ${options.version}`);
+                }else{
+                    node.verMap.set( options.version, data );    
+                }
+            }else{
+                node.verMap = new semverStore();
+                node.verMap.set( options.version, data );
+            }
+        }else{
+            throw Error(`Trying to register a duplicate route: ${url}`);
+        }
+    }else{
+        if(options.version){
+            node.verMap = new semverStore();
+            node.verMap.set( options.version, data );
+        }else{
+            node.data = data;
+        }
+    }
+
     this.count++;  
 }
 
@@ -219,8 +318,8 @@ Anumargak.prototype.normalizeDynamicUrl = function (url) {
     };
 }
 
-Anumargak.prototype.getRouteHandlers = function (route, method, url, options, fn) {
-    if(options.version){
+Anumargak.prototype.getRouteHandlers = function (route, version, fn) {
+    if(version){
         var verMap, handler;
         if( route ){
             if( route.verMap ){
@@ -234,7 +333,7 @@ Anumargak.prototype.getRouteHandlers = function (route, method, url, options, fn
         }else{
             verMap = new semverStore();
         }
-        verMap.set( options.version, fn );
+        verMap.set( version, fn );
 
         return { 
             handler: handler,
@@ -247,25 +346,6 @@ Anumargak.prototype.getRouteHandlers = function (route, method, url, options, fn
     }
 }
 
-Anumargak.prototype.checkIfRegistered = function (arr, method, url, options, fn) {
-    var result = this.isRegistered(arr, method, url);
-    if (result) {
-        if(options.version){//check if the version is same
-            var route;
-            if( this.dynamicRoutes[method][result] ){
-                route = this.dynamicRoutes[method][result];
-            }else {
-                route = this.staticRoutes[method][result];
-            }
-
-            if(route.verMap && route.verMap.get( options.version )){
-                throw Error(`Given route is matching with already registered route`);
-            }
-        }else{
-            throw Error(`Given route is matching with already registered route`);
-        }
-    }
-}
 
 //var urlPartsRegex = new RegExp("(\\/\\(.*?\\)|\\/[^\\(\\)\\/]+)");
 var urlPartsRegex = new RegExp(/(\/\(.*?\)|\/[^\(\)\/]+)/g);
@@ -288,7 +368,7 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
             } else {
                 var matchUrl = true;
                 for (var urlPart_i in urlParts) {
-                    if (doesMatch(urlParts[urlPart_i][1], givenUrlParts[urlPart_i][1])) {
+                    if (doesPatternMatch(urlParts[urlPart_i][1], givenUrlParts[urlPart_i][1])) {
                         continue
                     } else {
                         matchUrl = false;
@@ -310,35 +390,63 @@ Anumargak.prototype.quickFind = function (req, res) {
     const method = req.method;
     const version = req.headers['accept-version'];
 
-    const url = urlSlice(req.url, this.minUrlLength);
+    const url = urlSlice(req.url, this.minUrlLength);//remove query & hash string
+
     let result = this.staticRoutes[method][url];
     if (result) {
-        const handler = this.getHandler(result, version);
-        if( !handler ) return null;
-        else{
-            return {
-                handler: handler,
-                store : result.store
-            }
-        }
+        return this.buildQuickResponse(result, version);
     }else {
-        var urlRegex = Object.keys(this.dynamicRoutes[method]);
-        for (var i = 0; i < urlRegex.length; i++) {
-            result = this.dynamicRoutes[method][ urlRegex[i] ];
-            var matches = result.regex.exec( url );
-            if ( matches ){
-                const handler = this.getHandler(result, version);
-                if( !handler ) return null;
+        const spilitedUrl = breakUrlInPartsObject(url);
+        let node = this.dynamicRoutes[method]; //root node
+        let pathIndex = 0;
+
+        for(; pathIndex < spilitedUrl.length; pathIndex++ ){
+            const urlPart = spilitedUrl[pathIndex].val;
+
+            if( node[ urlPart ] ){
+                if( node [urlPart].next )
+                    node = node [urlPart].next;
                 else{
-                    return {
-                        handler: handler,
-                        store : result.store
+                    node = node [urlPart]
+                    break;
+                }
+            }else{ // dymapic path param
+                const patternKeys =  Object.keys(node);
+                for( let k_i = 0; k_i < patternKeys.length; k_i++) {
+                    const savedPattern = node[ patternKeys[k_i] ];
+                    if(savedPattern.startsWith) {//wildchar
+                        if(urlPart.startsWith (savedPattern.startsWith) ){//wildcard
+                            return this.buildQuickResponse(savedPattern, version);
+                        }
+                    }else{
+                        const matches = savedPattern.regex.test( urlPart)
+                        if( matches ){
+                            if( savedPattern.next )
+                                node = savedPattern.next;
+                            else{
+                                node = savedPattern
+                            }
+                            break;
+                        }
                     }
                 }
             }
         }
+
+        return this.buildQuickResponse(node, version);
     }
-    return null;
+}
+
+Anumargak.prototype.buildQuickResponse = function(node, version){
+    const data = this.getHandler( node, version);
+
+    if( !data ) return null;
+    else{
+        return {
+            handler: data.handler,
+            store : data.store
+        }
+    }
 }
 
 Anumargak.prototype.lookup = async function (req, res) {
@@ -378,6 +486,76 @@ Anumargak.prototype.lookup = async function (req, res) {
 }
 
 Anumargak.prototype.find = function (method, url, version) {
+
+    const urlData = urlBreak(url, this.minUrlLength);//extract query & hash string
+
+    let result = this.staticRoutes[method][urlData.url];
+    if (result) {
+        return this.buildResponse(result, version, urlData, result.params);
+    }else {
+        const spilitedUrl = breakUrlInPartsObject(urlData.url);
+        let node = this.dynamicRoutes[method]; //root node
+        let pathIndex = 0;
+        const params = {};
+        for(; pathIndex < spilitedUrl.length; pathIndex++ ){
+            const urlPart = spilitedUrl[pathIndex].val;
+
+            if( node[ urlPart ] ){
+                if( node [urlPart].next )
+                    node = node [urlPart].next;
+                else{
+                    node = node [urlPart]
+                    break;
+                }
+            }else{ // dymapic path param
+                const patternKeys =  Object.keys(node);
+                for( let k_i = 0; k_i < patternKeys.length; k_i++) {
+                    const savedPattern = node[ patternKeys[k_i] ];
+                    if(savedPattern.startsWith) {//wildchar
+                        if(urlPart.startsWith (savedPattern.startsWith) ){//wildcard
+                            params["*"] = urlData.url.substring( savedPattern.startsWith);
+                            return this.buildResponse(savedPattern, version, urlData, params);
+                        }
+                    }else{//dynamic pattern
+                        const matches = savedPattern.regex.exec( urlPart);
+                        if( matches ){
+                            for (var m_i = 1; m_i < matches.length; m_i++) {
+                                params[ savedPattern.paramNames[m_i - 1] ] = matches[m_i];
+                            }
+                            if( savedPattern.next )
+                                node = savedPattern.next;
+                            else{
+                                node = savedPattern
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return this.buildResponse(node, version, urlData, params);
+    }
+}
+
+Anumargak.prototype.buildResponse = function(node, version, urlData, params){
+    const data = this.getHandler( node, version);
+
+    if( !data ) {
+        return {
+            urlData : urlData
+        }
+    }else{
+        return {
+            handler: data.handler,
+            store : data.extraData,
+            params: params,
+            urlData : urlData
+        }
+    }
+}
+
+Anumargak.prototype.findOld = function (method, url, version) {
     const urlData = urlBreak(url, this.minUrlLength);
     let result = this.staticRoutes[method][urlData.url];
     if (result) {
@@ -402,7 +580,7 @@ Anumargak.prototype.find = function (method, url, version) {
             var matches = route.regex.exec( urlData.url );
             var params = route.params;
             if (matches) {
-                const handler = this.getHandler(route, version);
+                const handler = this.getHandler(node, version);
                 if( !handler ) {
                     return {
                         urlData : urlData
@@ -431,24 +609,107 @@ Anumargak.prototype.getHandler = function (route, version) {
         if( !route.verMap ) return;
         return route.verMap.get(version);
     }else{
-        return route.fn;
+        return route.data;
     }
 }
 
-Anumargak.prototype.off = function (method, url, version) {
+Anumargak.prototype.off = function (method, url, version, silence) {
     url = this.normalizeUrl(url);
 
     var done = this.removeEnum(method, url);
     if(done) return;
 
-    var hasPathParam = url.indexOf(":");
     var result;
-    if ( hasPathParam > -1) {//DYNAMIC
-        url = this.normalizeDynamicUrl(url).url;
-        result = this.isRegistered(this.dynamicRoutes, method, url);
-    } else {//STATIC
-        result = this.isRegistered(this.staticRoutes, method, url);
+    let notFound = false;
+    if (url.indexOf(":") === -1 && url.indexOf("*") === -1) {//STATIC
+        const result = this.staticRoutes[method][url];
+        if(result){
+            if(version ){
+                if(route.verMap && route.verMap.get( version )){
+                    var delCount = route.verMap.delete( version );
+                    this.count -= delCount;
+                }else{
+                    notFound = true;
+                }
+            }else{
+                delete result.data;
+                this.count--;
+            }
+        }else{
+            notFound = true;
+        }
+    } else {//DYNAMIC
+        const spilitedUrl = breakUrlInPartsObject(urlData.url);
+        let node = this.dynamicRoutes[method]; //root node
+        let pathIndex = 0;
+        const params = {};
+        for(; pathIndex < spilitedUrl.length; pathIndex++ ){
+            const urlPart = spilitedUrl[pathIndex].val;
+
+            if( node[ urlPart ] ){
+                if( node [urlPart].next )
+                    node = node [urlPart].next;
+                else{
+                    node = node [urlPart]
+                    break;
+                }
+                if(node.startsWith){//wildchar
+                    break;
+                }
+            }else if( node['*'] ){
+                const data = this.getHandler(node['*'], version);
+                if( !data ) {
+                    return {
+                        urlData : urlData
+                    }
+                }else{
+                    return {
+                        handler: data.handler,
+                        store : data.extraData,
+                        params: {
+                            "*" : urlData.url.substring( node['*'].startsWith)
+                        },
+                        urlData : urlData
+                    }
+                }
+
+            }else{ // dymapic path param
+                const patternKeys =  Object.keys(node);
+                for( let k_i = 0; k_i < patternKeys.length; k_i++) {
+                    const savedPattern = node[ patternKeys[k_i] ];
+                    const matches = savedPattern.regex.exec( urlPart);
+                    if( matches ){
+                        for (var m_i = 1; m_i < matches.length; m_i++) {
+                            params[ savedPattern.paramNames[m_i - 1] ] = matches[m_i];
+                        }
+                        if( savedPattern.next )
+                            node = savedPattern.next;
+                        else{
+                            node = savedPattern
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        const data = this.getHandler( node, version);
+
+        if( !data ) {
+            return {
+                urlData : urlData
+            }
+        }else{
+            return {
+                handler: data.handler,
+                store : data.extraData,
+                params: params,
+                urlData : urlData
+            }
+        }
     }
+
+    if(!silence && notFound) throw Error("Route you're trying to remove doesn't exist:");
 
     if (result) {
         if(version ){
@@ -526,7 +787,7 @@ Anumargak.prototype.all = function (url, options, fn, store) {
 }
 
 Anumargak.prototype._setMinUrlLength =  function (num){
-    if( num < this.minUrlLength) this.minUrlLength = num;
+    if( num > 0 && num < this.minUrlLength) this.minUrlLength = num;
 }
 
 function Anumargak(options) {
