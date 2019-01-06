@@ -513,7 +513,7 @@ Anumargak.prototype.find = function (method, url, version) {
                     const savedPattern = node[ patternKeys[k_i] ];
                     if(savedPattern.startsWith) {//wildchar
                         if(urlPart.startsWith (savedPattern.startsWith) ){//wildcard
-                            params["*"] = urlData.url.substring( savedPattern.startsWith);
+                            params["*"] = urlData.url.substring( spilitedUrl[pathIndex].index + savedPattern.startsWith.length );
                             return this.buildResponse(savedPattern, version, urlData, params);
                         }
                     }else{//dynamic pattern
