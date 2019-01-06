@@ -141,14 +141,14 @@ describe("Anumargak remove route", function() {
         expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1); 
 
-        anumargak.off("GET", "/this/is/versioned"); //it'll delete all the versions
+        anumargak.off("GET", "/this/is/versioned");
 
         expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);
         expect(anumargak.count).toEqual(0); 
 
     });
 
-    it("should remove versioned URLs", function() {
+    it("should remove URL without it's versions", function() {
         var anumargak = Anumargak();
 
         anumargak.on("GET", "/this/is/versioned", () => 10 );
@@ -163,10 +163,11 @@ describe("Anumargak remove route", function() {
         anumargak.on("GET", "/this/is/versioned", { version: '2.3.0' }, () => 50 );
         anumargak.on("GET", "/this/is/versioned", { version: '2.4.0' }, () => 50 );
 
-        anumargak.off("GET", "/this/is/versioned"); //it'll delete all the versions
+        expect( anumargak.count).toEqual(11);
+        anumargak.off("GET", "/this/is/versioned");
 
-        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);
-        expect(anumargak.count).toEqual(0); 
+        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(1);
+        expect(anumargak.count).toEqual(10); 
 
     });
 
@@ -205,7 +206,7 @@ describe("Anumargak remove route", function() {
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
         expect(anumargak.count).toEqual(1); 
 
-        anumargak.off("GET", "/this/is/:versioned"); //it'll delete all the versions
+        anumargak.off("GET", "/this/is/:versioned"); 
 
         expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(0);
         expect(anumargak.count).toEqual(0); 

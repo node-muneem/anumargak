@@ -16,6 +16,9 @@ Anumargak.prototype.addNamedExpression = function (arg1, arg2) {
     this.namedExpressions.addNamedExpression(arg1, arg2);
 }
 
+const parent = Symbol('parent');
+const haveChild = Symbol('haveChild');
+
 const supportedEvents = [ "request", "found", "not found", "route", "default" , "end"];
 
 Anumargak.prototype._onEvent = function (eventName, fn) {
@@ -219,16 +222,18 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
         const wildCardIndex = urlPart.indexOf("*");
         let currentNode;
         if( wildCardIndex !== -1){//wildchar
-            if( node[urlPart] 
-                || (urlPart === "/*" && ( node.next || Object.keys(node).length > 0)  ) //it'll override all the paths of this depth
-            ){ 
+            if( node[urlPart] || ( urlPart === "/*" && Object.keys(node).length > 0) ){
+                //throw error
                 break;
             }else{
                 //it is hard to find similar pattern so allow registration
                 node[urlPart] = {
                     startsWith: urlPart.substr(0, wildCardIndex)
                 }
-                node = node[urlPart];
+                currentNode = node[urlPart];
+                currentNode[parent] = node;
+                node = currentNode;
+
                 matchingPath = false;
             }
             break;
@@ -253,24 +258,29 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 currentNode.regex = new RegExp(`^${pathParams.pattern}$`);
                 currentNode.pattern = pathParams.pattern;
                 currentNode.paramNames = pathParams.paramNames;
+                currentNode[parent] = node;
                 matchingPath = false;
             }
         }else{//fixed
             if( !node[ urlPart] ) {
                 node[ urlPart] = {};
                 currentNode = node[urlPart]; 
+                currentNode[parent] = node;
                 matchingPath = false;  
             }else{
                 currentNode = node[ urlPart ];
             }
         }
 
+        node = currentNode;
+
         //move next
         if( pathIndex + 1  !== spilitedUrl.length){
-            if( !currentNode.next ) currentNode.next = {};
-            node = currentNode.next;
+            /* if( !currentNode.next ) currentNode.next = {};
+            node = currentNode.next; */
+            currentNode[haveChild] = true;
         }else{
-            node = currentNode;
+            //node = currentNode;
             break;
         }
     }
@@ -404,8 +414,8 @@ Anumargak.prototype.quickFind = function (req, res) {
             const urlPart = spilitedUrl[pathIndex].val;
 
             if( node[ urlPart ] ){
-                if( node [urlPart].next )
-                    node = node [urlPart].next;
+                if( node [urlPart][haveChild] )
+                    node = node [urlPart];
                 else{
                     node = node [urlPart]
                     break;
@@ -421,8 +431,8 @@ Anumargak.prototype.quickFind = function (req, res) {
                     }else{
                         const matches = savedPattern.regex.test( urlPart)
                         if( matches ){
-                            if( savedPattern.next )
-                                node = savedPattern.next;
+                            if( savedPattern[haveChild] )
+                                node = savedPattern;
                             else{
                                 node = savedPattern
                             }
@@ -501,8 +511,8 @@ Anumargak.prototype.find = function (method, url, version) {
             const urlPart = spilitedUrl[pathIndex].val;
 
             if( node[ urlPart ] ){
-                if( node [urlPart].next )
-                    node = node [urlPart].next;
+                if( node [urlPart][haveChild] )
+                    node = node [urlPart];
                 else{
                     node = node [urlPart]
                     break;
@@ -522,8 +532,8 @@ Anumargak.prototype.find = function (method, url, version) {
                             for (var m_i = 1; m_i < matches.length; m_i++) {
                                 params[ savedPattern.paramNames[m_i - 1] ] = matches[m_i];
                             }
-                            if( savedPattern.next )
-                                node = savedPattern.next;
+                            if( savedPattern[haveChild] )
+                                node = savedPattern;
                             else{
                                 node = savedPattern
                             }
@@ -619,127 +629,88 @@ Anumargak.prototype.off = function (method, url, version, silence) {
     var done = this.removeEnum(method, url);
     if(done) return;
 
-    var result;
-    let notFound = false;
+    let matchingNode, matchingUrlPart, parentNode, notFound = false;
     if (url.indexOf(":") === -1 && url.indexOf("*") === -1) {//STATIC
-        const result = this.staticRoutes[method][url];
-        if(result){
-            if(version ){
-                if(route.verMap && route.verMap.get( version )){
-                    var delCount = route.verMap.delete( version );
-                    this.count -= delCount;
-                }else{
-                    notFound = true;
-                }
-            }else{
-                delete result.data;
-                this.count--;
-            }
-        }else{
-            notFound = true;
-        }
+        parentNode = this.staticRoutes[method];
+        matchingUrlPart = url;
+        matchingNode = parentNode[url];
     } else {//DYNAMIC
-        const spilitedUrl = breakUrlInPartsObject(urlData.url);
+        //TODO: use breakUrl
+        const spilitedUrl = breakUrlInPartsObject(url);
         let node = this.dynamicRoutes[method]; //root node
         let pathIndex = 0;
-        const params = {};
         for(; pathIndex < spilitedUrl.length; pathIndex++ ){
             const urlPart = spilitedUrl[pathIndex].val;
-
+            
             if( node[ urlPart ] ){
-                if( node [urlPart].next )
-                    node = node [urlPart].next;
-                else{
-                    node = node [urlPart]
-                    break;
-                }
-                if(node.startsWith){//wildchar
-                    break;
-                }
-            }else if( node['*'] ){
-                const data = this.getHandler(node['*'], version);
-                if( !data ) {
-                    return {
-                        urlData : urlData
-                    }
+                if( node [urlPart][haveChild] ){
+                    node = node [urlPart];
                 }else{
-                    return {
-                        handler: data.handler,
-                        store : data.extraData,
-                        params: {
-                            "*" : urlData.url.substring( node['*'].startsWith)
-                        },
-                        urlData : urlData
-                    }
+                    matchingUrlPart = urlPart;
+                    //parentNode = node;
+                    matchingNode = node [urlPart]
+                    break;
                 }
+            }else{ // dynamic path param
+                const pathParams = processPathParameter( urlPart, this.allowUnsafeRegex );
 
-            }else{ // dymapic path param
                 const patternKeys =  Object.keys(node);
                 for( let k_i = 0; k_i < patternKeys.length; k_i++) {
                     const savedPattern = node[ patternKeys[k_i] ];
-                    const matches = savedPattern.regex.exec( urlPart);
-                    if( matches ){
-                        for (var m_i = 1; m_i < matches.length; m_i++) {
-                            params[ savedPattern.paramNames[m_i - 1] ] = matches[m_i];
-                        }
-                        if( savedPattern.next )
-                            node = savedPattern.next;
+                    
+                    if( savedPattern.pattern === pathParams.pattern ){
+                        if( savedPattern[haveChild] )
+                            node = savedPattern;
                         else{
-                            node = savedPattern
+                            matchingUrlPart = patternKeys[k_i];
+                            //parentNode = node;
+                            matchingNode = savedPattern;
+                            break;
                         }
+                    }
+                }//end for
+            }
+        }//edn for each url part
+    }//end dynamic url
+
+    if(matchingNode){
+        if(version ){
+            if(matchingNode.verMap && matchingNode.verMap.get( version )){
+                var delCount = matchingNode.verMap.delete( version );
+                this.count -= delCount;
+
+                if(matchingNode.verMap.count() === 0){
+                    delete matchingNode.verMap;
+                }
+            }else{
+                notFound = true;
+            }
+        }else if(matchingNode.verMap){
+                delete matchingNode.data;
+                this.count--;
+        }else{
+            if(parentNode) delete parentNode[matchingUrlPart]; //static
+            else{//remove complete branch in case of dynamic URLs
+
+                let key;
+                while( matchingNode[parent] ){
+                    const keys = Object.keys(matchingNode[parent]);
+                    if( keys.length === 1){
+                        key = keys[0];
+                        matchingNode = matchingNode[parent];
+                    }else{
                         break;
                     }
                 }
+                delete matchingNode[key];
             }
+            this.count--;
         }
-
-        const data = this.getHandler( node, version);
-
-        if( !data ) {
-            return {
-                urlData : urlData
-            }
-        }else{
-            return {
-                handler: data.handler,
-                store : data.extraData,
-                params: params,
-                urlData : urlData
-            }
-        }
+    }else{
+        notFound = true;
     }
 
     if(!silence && notFound) throw Error("Route you're trying to remove doesn't exist:");
-
-    if (result) {
-        if(version ){
-            var route;
-            if( this.dynamicRoutes[method][result] ){
-                route = this.dynamicRoutes[method][result];
-            }else {
-                route = this.staticRoutes[method][result];
-            }
-
-            if(route.verMap && route.verMap.get( version )){
-                var delCount = route.verMap.delete( version );
-                this.count -= delCount;
-            }
-        }else{
-            if( this.dynamicRoutes[method][result] ){
-                if( this.dynamicRoutes[method][result].verMap ){
-                    this.count -= this.dynamicRoutes[method][result].verMap.count();
-                }
-                delete this.dynamicRoutes[method][result];
-                this.count--;
-            }else {
-                if( this.staticRoutes[method][result].verMap ){
-                    this.count -= this.staticRoutes[method][result].verMap.count();
-                }
-                delete this.staticRoutes[method][result];
-                this.count--;
-            }
-        }
-    }
 
 }
 
