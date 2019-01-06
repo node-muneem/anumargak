@@ -21,6 +21,7 @@ const haveChild = Symbol('haveChild');
 const kRegex = Symbol('kRegex');
 const kPattern = Symbol('kPattern');
 const kParamNames = Symbol('kParamNames');
+const kParamPair = Symbol('kParamPair');
 const kStartsWith = Symbol('kStartsWith');
 
 const supportedEvents = [ "request", "found", "not found", "route", "default" , "end"];
@@ -239,6 +240,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 node[urlPart][kStartsWith] = urlPart.substr(0, wildCardIndex);
                 currentNode = node[urlPart];
                 currentNode[kParent] = node;
+                currentNode[kParamPair] = params;
                 node[haveChild] = true;
                 node = currentNode;
 
@@ -265,6 +267,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
                 currentNode[kRegex] = new RegExp(`^${pathParams.pattern}$`);
                 currentNode[kPattern] = pathParams.pattern;
                 currentNode[kParamNames] = pathParams.paramNames;
+                currentNode[kParamPair] = params;
                 currentNode[kParent] = node;
                 node[haveChild] = true;
                 matchingPath = false;
@@ -527,7 +530,7 @@ Anumargak.prototype.find = function (method, url, version) {
         const spilitedUrl = breakUrlInPartsObject(urlData.url);
         let node = this.dynamicRoutes[method]; //root node
         let pathIndex = 0;
-        const params = {};
+        let params = {};
         for(; pathIndex < spilitedUrl.length; pathIndex++ ){
             const urlPart = spilitedUrl[pathIndex].val;
 
@@ -551,12 +554,18 @@ Anumargak.prototype.find = function (method, url, version) {
                         break;
                     }else if(savedPattern[kStartsWith] ) {//wildchar
                         if(urlPart.startsWith (savedPattern[kStartsWith] ) ){//wildcard
+                            if( savedPattern[kParamPair ] ){
+                                params = Object.assign(params, savedPattern[kParamPair ]);
+                            }
                             params["*"] = urlData.url.substring( spilitedUrl[pathIndex].index + savedPattern[kStartsWith].length );
                             return this.buildResponse(savedPattern, version, urlData, params);
                         }
                     }else if(savedPattern[kRegex]){//dynamic pattern
                         const matches = savedPattern[kRegex].exec( urlPart);
                         if( matches ){
+                            if( savedPattern[kParamPair ] ){
+                                params = Object.assign(params, savedPattern[kParamPair ]);
+                            }
                             for (var m_i = 1; m_i < matches.length; m_i++) {
                                 params[ savedPattern[kParamNames][m_i - 1] ] = matches[m_i];
                             }

@@ -7,18 +7,20 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/login/as/:role(admin|user|staff)", () => 30);
 
         expect(anumargak.count).toEqual(1);
-        expect(anumargak.find("GET","/login/as/admin").handler()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/user").handler()).toEqual(30);
-        expect(anumargak.find("GET","/login/as/staff").handler()).toEqual(30);
-
-        expect(anumargak.staticRoutes.GET["/login/as/admin"].fn()).toEqual(30);
-        expect(anumargak.staticRoutes.GET["/login/as/admin"].params).toEqual({ role : "admin"});
-        expect(anumargak.staticRoutes.GET["/login/as/user"].fn()).toEqual(30);
-        expect(anumargak.staticRoutes.GET["/login/as/user"].params).toEqual({ role : "user"});
-        expect(anumargak.staticRoutes.GET["/login/as/staff"].fn()).toEqual(30);
-        expect(anumargak.staticRoutes.GET["/login/as/staff"].params).toEqual({ role : "staff"});
-
-        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(0);
+        const admin = anumargak.find("GET","/login/as/admin");
+        expect(admin.handler()).toEqual(30);
+        expect(admin.params).toEqual({ role : "admin"});
+        
+        const user = anumargak.find("GET","/login/as/user");
+        expect(user.handler()).toEqual(30);
+        expect(user.params).toEqual({ role : "user"});
+        
+        const staff = anumargak.find("GET","/login/as/staff");
+        expect(staff.handler()).toEqual(30);
+        expect(staff.params).toEqual({ role : "staff"});
+        
+        expect( Object.keys(anumargak.staticRoutes.GET).length ).toEqual(3);
+        expect( Object.keys(anumargak.dynamicRoutes.GET).length ).toEqual(0);
 
     }); 
 
@@ -139,6 +141,13 @@ describe("Anumargak ", function() {
         anumargak.on("GET", "/login/as/:role(admin|user|staff)/:method([a-z]+)", () => 30);
 
         expect(anumargak.count).toEqual(1);
+        const adminJtoken = anumargak.find("GET","/login/as/admin/jtoken");
+        expect(adminJtoken.handler()).toEqual(30);
+        expect(adminJtoken.params).toEqual({
+            role: "admin",
+            method: "jtoken"
+        });
+        
         expect(anumargak.find("GET","/login/as/admin/jtoken").handler()).toEqual(30);
         expect(anumargak.find("GET","/login/as/user/jtoken").handler()).toEqual(30);
         expect(anumargak.find("GET","/login/as/staff/jtoken").handler()).toEqual(30);
@@ -148,7 +157,7 @@ describe("Anumargak ", function() {
         expect(anumargak.find("GET","/login/as/staff/bare").handler()).toEqual(30);
 
         expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);
-        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(3);
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(1);
 
     });
 

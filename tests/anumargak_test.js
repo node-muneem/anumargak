@@ -118,7 +118,7 @@ describe("Anumargak ", function () {
         anumargak.on("HEAD", "/this/is/:dynamic", () => 30)
         expect(() => {
             anumargak.on("HEAD", "/this/is/:dynamic", () => 50)
-        }).toThrowError("Given route is matching with already registered route");
+        }).toThrowError("Trying to register a duplicate route: /this/is/:dynamic");
 
     });
 
