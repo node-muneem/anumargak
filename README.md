@@ -173,8 +173,8 @@ To find a registered route. It returns;
   store : any // extra data provided at the time of registering the route
 }
 ```
-
-`quickFind()` is faster than `find()`.
+* alternate signature `quickFind(request)`
+* `quickFind()` is faster than `find()` as it doesn't process path parameters.
 
 ## lookup(request, response, store)
 
@@ -183,6 +183,10 @@ This method reads *request* object to fetch url, method, and `accept-version` he
 The handler should accept: request, response, and store. *request._path.params* is an object of path parameters.
 
 Lookup method also save _path, _queryStr, and _hashStr in request object to save re-effort of spliting them. *_path* is an object with two properties: url, params.
+
+## lookupWithEvents(request, response, store)
+
+save as above but raises events
 
 ## count
 
@@ -265,6 +269,8 @@ Following events are supported;
 * *request* - When lookup method is called.
 * *found* - Before calling registered handler. (alias: *route* )
 * *not found* - When there is no registered handler. (alias: *default* )
+
+These events will be called when you use `lookupWithEvents()`.
 
 ### Mappings
 

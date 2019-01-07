@@ -341,7 +341,8 @@ Anumargak.prototype.quickFind = function (method, url, version) {
     return null;
 }
 
-Anumargak.prototype.lookup = async function (req, res) {
+
+Anumargak.prototype.lookupWithEvents = async function (req, res) {
     this.eventEmitter.emit("request", req, res); //unnecessary
     var method = req.method;
     var version = req.headers['accept-version'];
@@ -373,6 +374,37 @@ Anumargak.prototype.lookup = async function (req, res) {
 
     }else{
         this.eventEmitter.emit("not found", req, res); //unnecessary
+        this.defaultFn(req, res);
+    }
+}
+
+Anumargak.prototype.lookup = async function (req, res) {
+    var method = req.method;
+    var version = req.headers['accept-version'];
+
+    var result = this.find(method, req.url, version);
+    req._path = {
+        url : result.urlData.url,
+        params : result.params,
+    }; 
+    req._queryStr = result.urlData.queryStr;
+    req._hashStr = result.urlData.hashStr;
+
+    if(result.handler){
+        if(Array.isArray(result.handler) ){
+            const len = result.handler.length;
+            for(let i=0; i<len;i++){
+                if( !res.finished ) {
+                    await result.handler[i](req, res, result.store);
+                }else{
+                    break;
+                }
+            }
+        }else{
+            result.handler(req, res, result.store);
+        }
+        
+    }else{
         this.defaultFn(req, res);
     }
 }
