@@ -92,9 +92,10 @@ exports.urlBreak = function (url, startIndex) {
             result.queryStr = url.substring(i + 1, fragmentIndex);
             break;
         } else if (url[i] === '#') {
-            result.url = url.substring(0, i)
-            result.hashStr = url.substring(i + 1);
-            break;
+            return {
+                url: url.substring(0, i),
+                hashStr: url.substring(i + 1)
+            }
         } 
     }
     return result;
