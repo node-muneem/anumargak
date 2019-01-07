@@ -151,8 +151,21 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData
 
 Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params){
     this.checkIfRegistered(this.staticRoutes, method, url, options, fn);
-
     this.count++;
+    this._setMinUrlLength( url.length );
+
+    this.__addStatic(method, url, options, fn, extraData, params);
+    if (this.ignoreTrailingSlash) {
+        if (url.endsWith("/")) {
+            url = url.substr(0, url.length - 1);
+        } else {
+            url = url + "/";
+        }
+        this.__addStatic(method, url, options, fn, extraData, params);
+    }
+}
+
+Anumargak.prototype.__addStatic = function(method, url, options, fn, extraData, params){
     var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
     this.staticRoutes[method][url] = { 
         fn : routeHandlers.handler,
@@ -160,25 +173,6 @@ Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, p
         params: params,
         store: extraData
     };
-    this._setMinUrlLength( url.length );
-    //this.staticRoutes[method][url] = { fn: fn, params: params };
-    if (this.ignoreTrailingSlash) {
-        if (url.endsWith("/")) {
-            url = url.substr(0, url.length - 1);
-        } else {
-            url = url + "/";
-        }
-        
-        var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
-        this.staticRoutes[method][url] = { 
-            fn : routeHandlers.handler,
-            verMap: routeHandlers.verMap, 
-            params: params,
-            store: extraData
-        };
-
-    }
-
 }
 
 Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params){
