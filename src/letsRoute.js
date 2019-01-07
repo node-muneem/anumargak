@@ -79,7 +79,11 @@ Anumargak.prototype._on = function (method, url, options, fn, extraData) {
     if (httpMethods.indexOf(method) === -1) throw Error("Invalid method type " + method);
 
     url = this.normalizeUrl(url);
-    this._addRoute(method, url, options, fn, extraData);
+    const data = {
+        handler: fn,
+        store: extraData
+    }
+    this._addRoute(method, url, options, data);
 }
 
 Anumargak.prototype.normalizeUrl = function (url) {
@@ -103,16 +107,16 @@ Anumargak.prototype.normalizeUrl = function (url) {
 /*
 paramas is useful in case of enum url where we know the parameter value in advance.
 */
-Anumargak.prototype._addRoute = function (method, url, options, fn, extraData, params) {
+Anumargak.prototype._addRoute = function (method, url, options, data, params) {
 
-    var done = this._checkForEnum(method, url, options, fn, extraData, params);
+    var done = this._checkForEnum(method, url, options, data, params);
     if( done ) { //All the enumerated URLs are registered
         return;
     }else{
         if (url.indexOf(":") > 0) {//DYNAMIC
-            this._addDynamic(method, url, options, fn, extraData, params);
+            this._addDynamic(method, url, options, data, params);
         } else {//STATIC
-            this._addStatic(method, url, options, fn, extraData, params);
+            this._addStatic(method, url, options, data, params);
         }
     }
 }
@@ -125,7 +129,7 @@ Anumargak.prototype._addRoute = function (method, url, options, fn, extraData, p
  * @param {function} fn 
  * @param {object} params 
  */
-Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData, params){
+Anumargak.prototype._checkForEnum = function(method, url, options, data, params){
     var matches = getFirstMatche(url, enumRegexStr);
     if (matches) {
         var name = matches[1];
@@ -142,48 +146,54 @@ Anumargak.prototype._checkForEnum = function(method, url, options, fn, extraData
                 params[name] = arr[i];
             }
             this.count--;
-            this._addRoute(method, newurl, options, fn, extraData, params);
+            this._addRoute(method, newurl, options, data, params);
         }
         this.count++;
         return true;
     }
 }
 
-Anumargak.prototype._addStatic = function(method, url, options, fn, extraData, params){
-    this.checkIfRegistered(this.staticRoutes, method, url, options, fn);
+/**
+ * Register a static route if not registered. Register it twice if `ignoreTrailingSlash:true`
+ */
+Anumargak.prototype._addStatic = function(method, url, options, data, params){
+    this.checkIfRegistered(this.staticRoutes, method, url, options, data.handler);
     this.count++;
     this._setMinUrlLength( url.length );
 
-    this.__addStatic(method, url, options, fn, extraData, params);
+    this.__addStatic(method, url, options, data, params);
     if (this.ignoreTrailingSlash) {
         if (url.endsWith("/")) {
             url = url.substr(0, url.length - 1);
         } else {
             url = url + "/";
         }
-        this.__addStatic(method, url, options, fn, extraData, params);
+        this.__addStatic(method, url, options, data, params);
     }
 }
 
-Anumargak.prototype.__addStatic = function(method, url, options, fn, extraData, params){
-    var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, fn);
+/**
+ * Register a static route without checking any condition. It should be called by this._addStatic()
+ */
+Anumargak.prototype.__addStatic = function(method, url, options, data, params){
+    var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, data.handler);
     this.staticRoutes[method][url] = { 
         fn : routeHandlers.handler,
         verMap: routeHandlers.verMap, 
         params: params,
-        store: extraData
+        store: data.store
     };
 }
 
-Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, params){
+Anumargak.prototype._addDynamic = function(method, url, options, data, params){
     const indexOfFirstPathParam = url.indexOf(":");
     this._setMinUrlLength( indexOfFirstPathParam );
 
     var normalizedUrl = this.normalizeDynamicUrl(url);
     url = normalizedUrl.url;
     
-    this.checkIfRegistered(this.dynamicRoutes, method, url, options, fn);
-    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, fn);
+    this.checkIfRegistered(this.dynamicRoutes, method, url, options, data.handler);
+    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, data.handler);
     
     var regex = new RegExp("^" + url + "$");
     this.dynamicRoutes[method][url] = { 
@@ -192,7 +202,7 @@ Anumargak.prototype._addDynamic = function(method, url, options, fn, extraData, 
         verMap: routeHandlers.verMap, 
         params: params || {}, 
         paramNames: normalizedUrl.paramNames ,
-        store: extraData
+        store: data.store
     };  
     this.count++;  
 }
