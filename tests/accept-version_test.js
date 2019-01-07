@@ -14,7 +14,7 @@ describe("Anumargak ", function () {
         expect( router.count).toEqual(5);
 
         expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/not/versioned" }).handler()).toEqual(5);
-        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.0" }, url: "/this/is/not/versioned" }) ).toEqual(null);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.0" }, url: "/this/is/not/versioned" }) ).toBeUndefined();
         expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/versioned" }).handler()).toEqual(10);
         expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.0" }, url: "/this/is/versioned" } ).handler()).toEqual(30);
         expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.3" }, url: "/this/is/versioned" }).handler()).toEqual(40);
@@ -24,6 +24,29 @@ describe("Anumargak ", function () {
         expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "*"}, url: "/this/is/versioned" }).handler()).toEqual(50);
     });
 
+    it("QUICK FIND: should register versioned static url without registering non-versioned URL first", function () {
+        var router = Anumargak();
+
+        router.on("GET", "/this/is/not/versioned", () => 5 );
+        router.on("GET", "/this/is/versioned", { version: '1.2.0' }, () => 30 );
+        router.on("GET", "/this/is/versioned", { version: '1.2.3' }, () => 40 );
+        router.on("GET", "/this/is/versioned", { version: '2.4.0' }, () => 50 );
+        router.on("GET", "/this/is/versioned", () => 10 );
+
+        expect( Object.keys(router.staticRoutes.GET).length ).toEqual(2);
+        expect( router.count).toEqual(5);
+
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/not/versioned" }).handler()).toEqual(5);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.0" }, url: "/this/is/not/versioned" }) ).toBeUndefined();
+        expect( router.quickFind( { method: "GET", headers: {}, url: "/this/is/versioned" }).handler()).toEqual(10);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.0" }, url: "/this/is/versioned" } ).handler()).toEqual(30);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.3" }, url: "/this/is/versioned" }).handler()).toEqual(40);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "2.4.0" }, url: "/this/is/versioned" }).handler()).toEqual(50);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "1.2.x" }, url: "/this/is/versioned" }).handler()).toEqual(40);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' :  "1.x" }, url: "/this/is/versioned" }).handler()).toEqual(40);
+        expect( router.quickFind( { method: "GET", headers: { 'accept-version' : "*"}, url: "/this/is/versioned" }).handler()).toEqual(50);
+    });
+    
     it("LOOKUP: should find versioned static url", function () {
         var router = Anumargak({
             defaultRoute : function(req, res){

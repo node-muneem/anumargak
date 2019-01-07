@@ -194,4 +194,25 @@ describe("Anumargak wildchar", function() {
         
         anumargak.lookup(req) ;
     });
+
+    it("FIND: should add wildcard enumetrated URLs", function() {
+        var anumargak = Anumargak();
+
+        anumargak.on("GET", "/login/as/:role(admin|user|staff)/*", () => 30);
+
+        expect(anumargak.count).toEqual(1);
+        const adminJtoken = anumargak.find("GET","/login/as/admin/jtoken");
+        expect(adminJtoken.handler()).toEqual(30);
+        expect(adminJtoken.params).toEqual({
+            role: "admin",
+            "*": "jtoken"
+        });
+        
+        const otherJtoken = anumargak.find("GET","/login/as/other/jtoken");
+        expect(otherJtoken.handler).toBeUndefined;
+
+        expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);
+        expect(Object.keys(anumargak.dynamicRoutes.GET).length).toEqual(3);
+
+    });
 });

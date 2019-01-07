@@ -163,6 +163,7 @@ describe("Anumargak remove route", function() {
         anumargak.on("GET", "/this/is/versioned", { version: '2.3.0' }, () => 50 );
         anumargak.on("GET", "/this/is/versioned", { version: '2.4.0' }, () => 50 );
 
+        expect( anumargak.count).toEqual(11);
         anumargak.off("GET", "/this/is/versioned"); //it'll delete all the versions
 
         expect(Object.keys(anumargak.staticRoutes.GET).length).toEqual(0);

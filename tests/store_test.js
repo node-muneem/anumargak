@@ -12,8 +12,9 @@ describe("Anumargak store", function() {
         expect(Object.keys(anumargak.staticRoutes.HEAD).length).toEqual(1);
         expect(anumargak.count).toEqual(2);
 
-        expect(anumargak.find("GET", "/this/is/static").handler()).toEqual(30);
-        expect(anumargak.find("GET", "/this/is/static").store ).toEqual("something");
+        const getResult = anumargak.find("GET", "/this/is/static");
+        expect(getResult.handler()).toEqual(30);
+        expect(getResult.store ).toEqual("something");
         
         expect(anumargak.find("HEAD", "/this/is/static").handler()).toEqual(30);
         expect(anumargak.find("HEAD", "/this/is/static").store ).toEqual("nothing");

@@ -1,6 +1,8 @@
-const { urlSlice, urlBreak } = require('../src/util');
+const { urlSlice, urlBreak, doesMatch } = require('../src/util');
 
-describe("urlSlice", function() {
+describe("util", function() {
+
+    describe("method urlSlice", function() {
   
     it("should handle urls with query string", function() {
 
@@ -47,4 +49,15 @@ describe("urlSlice", function() {
         expect(result.hashStr).toEqual("q1=val&q2=val3&q1=val?q2=val3");
         
     });
+
+});
+
+describe("method doesmath", function() {
+    it("should similar URLs", function() {
+
+        var result = doesMatch("/(sri.*)", "/?(s...*)");
+        expect(result).toEqual(true);
+        
+    });
+});
 });

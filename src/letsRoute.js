@@ -157,7 +157,7 @@ Anumargak.prototype._checkForEnum = function(method, url, options, data, params)
  * Register a static route if not registered. Register it twice if `ignoreTrailingSlash:true`
  */
 Anumargak.prototype._addStatic = function(method, url, options, data, params){
-    this.checkIfRegistered(this.staticRoutes, method, url, options, data.handler);
+    this.checkIfRoutIsPresent(this.staticRoutes, method, url, options, data.handler);
     this.count++;
     this._setMinUrlLength( url.length );
 
@@ -176,12 +176,11 @@ Anumargak.prototype._addStatic = function(method, url, options, data, params){
  * Register a static route without checking any condition. It should be called by this._addStatic()
  */
 Anumargak.prototype.__addStatic = function(method, url, options, data, params){
-    var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, data.handler);
+    var routeHandlers = this.getRouteHandlers(this.staticRoutes[method][url], method, url, options, data);
     this.staticRoutes[method][url] = { 
-        fn : routeHandlers.handler,
+        data : routeHandlers.data,
         verMap: routeHandlers.verMap, 
         params: params,
-        store: data.store
     };
 }
 
@@ -192,17 +191,16 @@ Anumargak.prototype._addDynamic = function(method, url, options, data, params){
     var normalizedUrl = this.normalizeDynamicUrl(url);
     url = normalizedUrl.url;
     
-    this.checkIfRegistered(this.dynamicRoutes, method, url, options, data.handler);
-    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, data.handler);
+    this.checkIfRoutIsPresent(this.dynamicRoutes, method, url, options, data.handler);
+    var routeHandlers = this.getRouteHandlers(this.dynamicRoutes[method][url], method, url, options, data);
     
     var regex = new RegExp("^" + url + "$");
     this.dynamicRoutes[method][url] = { 
-        fn: routeHandlers.handler,
+        data : routeHandlers.data,
         regex: regex, 
         verMap: routeHandlers.verMap, 
         params: params || {}, 
         paramNames: normalizedUrl.paramNames ,
-        store: data.store
     };  
     this.count++;  
 }
@@ -223,36 +221,43 @@ Anumargak.prototype.normalizeDynamicUrl = function (url) {
     };
 }
 
-Anumargak.prototype.getRouteHandlers = function (route, method, url, options, fn) {
-    if(options.version){
-        var verMap, handler;
-        if( route ){
-            if( route.verMap ){
+Anumargak.prototype.getRouteHandlers = function (route, method, url, options, data) {
+    if(route){ //existing route
+        if(options.version){ //with version
+            let verMap;
+            if(route.verMap){
                 verMap = route.verMap;
             }else{
-                verMap = new semverStore();
+                verMap = new semverStore()
             }
-            if (route.fn){
-                handler = route.fn;
+            verMap.set(options.version, data);
+            return{
+                verMap : verMap,
+                data: route.data
             }
-        }else{
-            verMap = new semverStore();
+        }else{//without version
+            return {
+                data: data,
+                verMap: route.verMap
+            }
         }
-        verMap.set( options.version, fn );
-
-        return { 
-            handler: handler,
-            verMap: verMap, 
-        };    
-    }else{
-        return { 
-            handler: fn
-        };
+    }else{//new route
+        if(options.version){// with version
+            const dataHandler =  {
+                verMap : new semverStore()
+            }
+            dataHandler.verMap.set(options.version, data);
+            return dataHandler;
+        }else{ //without version
+            return { 
+                data: data
+            };
+        }
     }
 }
 
-Anumargak.prototype.checkIfRegistered = function (arr, method, url, options, fn) {
-    var result = this.isRegistered(arr, method, url);
+Anumargak.prototype.checkIfRoutIsPresent = function (routesArr, method, url, options, fn) {
+    var result = this.checkIfUrlIsPresent(routesArr, method, url);
     if (result) {
         if(options.version){//check if the version is same
             var route;
@@ -265,7 +270,7 @@ Anumargak.prototype.checkIfRegistered = function (arr, method, url, options, fn)
             if(route.verMap && route.verMap.get( options.version )){
                 throw Error(`Given route is matching with already registered route`);
             }
-        }else{
+        }else if(routesArr[method][url].data){
             throw Error(`Given route is matching with already registered route`);
         }
     }
@@ -274,17 +279,17 @@ Anumargak.prototype.checkIfRegistered = function (arr, method, url, options, fn)
 //var urlPartsRegex = new RegExp("(\\/\\(.*?\\)|\\/[^\\(\\)\\/]+)");
 var urlPartsRegex = new RegExp(/(\/\(.*?\)|\/[^\(\)\/]+)/g);
 
-Anumargak.prototype.isRegistered = function (arr, method, url) {
-    if (arr[method][url]) {//exact route is already registered
+Anumargak.prototype.checkIfUrlIsPresent = function (arr, method, url) {
+    if (arr[method][url]) {//exact route is already present
         return url;
     } else {
-        //check if tricky similar route is already registered
+        //check if tricky similar route is already present
         //"/this/path/:is/dynamic"
         //"/this/:path/is/dynamic"
         var urls = Object.keys( arr[method] );
         //var givenUrlParts = getAllMatches(url, urlPartsRegex);
         var givenUrlParts = getAllMatches(url, urlPartsRegex);
-        for (var u_i in urls) {//compare against all the registered URLs
+        for (var u_i in urls) {//compare against all the saved URLs
             //var urlParts = getAllMatches(urls[u_i], urlPartsRegex);
             var urlParts = getAllMatches(urls[u_i], urlPartsRegex);
             if (urlParts.length !== givenUrlParts.length) {
@@ -310,35 +315,26 @@ Anumargak.prototype.isRegistered = function (arr, method, url) {
 }
 
 
-Anumargak.prototype.quickFind = function (req, res) {
-    const method = req.method;
-    const version = req.headers['accept-version'];
+//Anumargak.prototype.quickFind = function (req) {
+Anumargak.prototype.quickFind = function (method, url, version) {
+    if( arguments.length === 1){ //method overiding
+        const req = method;
+        url = req.url;
+        method = req.method;
+        version = req.headers['accept-version'];
+    }
 
-    const url = urlSlice(req.url, this.minUrlLength);
+    url = urlSlice(url, this.minUrlLength);
     let result = this.staticRoutes[method][url];
-    if (result) {
-        const handler = this.getHandler(result, version);
-        if( !handler ) return null;
-        else{
-            return {
-                handler: handler,
-                store : result.store
-            }
-        }
-    }else {
+    if (result) { //static
+        return this.getData(result, version);
+    }else { //dynamic
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
             result = this.dynamicRoutes[method][ urlRegex[i] ];
             var matches = result.regex.exec( url );
             if ( matches ){
-                const handler = this.getHandler(result, version);
-                if( !handler ) return null;
-                else{
-                    return {
-                        handler: handler,
-                        store : result.store
-                    }
-                }
+                return this.getData(result, version);
             }
         }
     }
@@ -384,30 +380,30 @@ Anumargak.prototype.lookup = async function (req, res) {
 Anumargak.prototype.find = function (method, url, version) {
     const urlData = urlBreak(url, this.minUrlLength);
     let result = this.staticRoutes[method][urlData.url];
-    if (result) {
-        const handler = this.getHandler(result, version);
-        if( !handler ) {
+    if (result) { //static
+        const data = this.getData(result, version);
+        if( !data ) {
             return {
                 urlData : urlData
             };
         }else{
             return { 
-                handler: handler,
+                handler: data.handler,
                 params: result.params,
-                store: result.store,
+                store: data.store,
                 urlData : urlData
             };
         }
 
-    }else {
+    }else { //dynamic
         var urlRegex = Object.keys(this.dynamicRoutes[method]);
         for (var i = 0; i < urlRegex.length; i++) {
             var route = this.dynamicRoutes[method][urlRegex[i]];
             var matches = route.regex.exec( urlData.url );
             var params = route.params;
             if (matches) {
-                const handler = this.getHandler(route, version);
-                if( !handler ) {
+                const data = this.getData(route, version);
+                if( !data ) {
                     return {
                         urlData : urlData
                     };
@@ -416,9 +412,9 @@ Anumargak.prototype.find = function (method, url, version) {
                         params[route.paramNames[m_i - 1]] = matches[m_i];
                     }
                     return { 
-                        handler: handler,
+                        handler: data.handler,
                         params: params,
-                        store: route.store,
+                        store: data.store,
                         urlData : urlData
                     };
                 }
@@ -430,12 +426,15 @@ Anumargak.prototype.find = function (method, url, version) {
     };
 }
 
-Anumargak.prototype.getHandler = function (route, version) {
+/**
+ * return data for versioned or non-versioned routes
+ */
+Anumargak.prototype.getData = function (route, version) {
     if(version){
         if( !route.verMap ) return;
         return route.verMap.get(version);
     }else{
-        return route.fn;
+        return route.data;
     }
 }
 
@@ -449,9 +448,9 @@ Anumargak.prototype.off = function (method, url, version) {
     var result;
     if ( hasPathParam > -1) {//DYNAMIC
         url = this.normalizeDynamicUrl(url).url;
-        result = this.isRegistered(this.dynamicRoutes, method, url);
+        result = this.checkIfUrlIsPresent(this.dynamicRoutes, method, url);
     } else {//STATIC
-        result = this.isRegistered(this.staticRoutes, method, url);
+        result = this.checkIfUrlIsPresent(this.staticRoutes, method, url);
     }
 
     if (result) {
