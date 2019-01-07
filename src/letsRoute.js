@@ -446,40 +446,37 @@ Anumargak.prototype.off = function (method, url, version) {
 
     var hasPathParam = url.indexOf(":");
     var result;
+    let rootRoute;
     if ( hasPathParam > -1) {//DYNAMIC
         url = this.normalizeDynamicUrl(url).url;
         result = this.checkIfUrlIsPresent(this.dynamicRoutes, method, url);
+        rootRoute = this.dynamicRoutes[method]
     } else {//STATIC
         result = this.checkIfUrlIsPresent(this.staticRoutes, method, url);
+        rootRoute = this.staticRoutes[method]
     }
 
     if (result) {
-        if(version ){
-            var route;
-            if( this.dynamicRoutes[method][result] ){
-                route = this.dynamicRoutes[method][result];
-            }else {
-                route = this.staticRoutes[method][result];
-            }
-
+        if(version ){ //remove versioned route
+            let route = rootRoute[result];
             if(route.verMap && route.verMap.get( version )){
                 var delCount = route.verMap.delete( version );
                 this.count -= delCount;
             }
-        }else{
-            if( this.dynamicRoutes[method][result] ){
-                if( this.dynamicRoutes[method][result].verMap ){
-                    this.count -= this.dynamicRoutes[method][result].verMap.count();
+            if(route.verMap.count() === 0){
+                if(route.data){
+                    delete route.verMap;
+                }else{
+                    delete rootRoute[result];
                 }
-                delete this.dynamicRoutes[method][result];
-                this.count--;
-            }else {
-                if( this.staticRoutes[method][result].verMap ){
-                    this.count -= this.staticRoutes[method][result].verMap.count();
-                }
-                delete this.staticRoutes[method][result];
-                this.count--;
             }
+        }else{ //remove non-versioned route
+            if( rootRoute[result].verMap ){
+                delete rootRoute[result].data;
+            }else{
+                delete rootRoute[result];
+            }
+            this.count--;
         }
     }
 
