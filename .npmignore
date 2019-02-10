@@ -10,3 +10,4 @@ lib
 .nyc_output
 tasks
 static/contributors.js
+savepoints

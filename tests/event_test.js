@@ -34,7 +34,7 @@ describe("Anumargak events", function () {
             headers: {}
         }
 
-        router.lookup(req);
+        router.lookupWithEvents(req);
 
     });
     it("should emit not-found  and request event when the route is not registered", function (done) {
@@ -72,7 +72,7 @@ describe("Anumargak events", function () {
             headers: {}
         }
 
-        router.lookup(req);
+        router.lookupWithEvents(req);
     });
     it("should throw error for unsupported events", function () {
         var router = Anumargak();
