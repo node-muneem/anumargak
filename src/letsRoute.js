@@ -29,6 +29,10 @@ Anumargak.prototype._onEvent = function (eventName, fn) {
     this.eventEmitter.on(_name, fn);
 }
 
+// Object used to hold list of routes we can print for debugging
+var listOfRoutes = [];
+var listOfMethods = {};
+
 /**
  * Adds routes against the given method and URL
  * @param {string | array} method 
@@ -66,6 +70,13 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
         throw Error("Invalid method argument. String or array is expected.");
     }
     
+    listOfMethods[method]
+    listOfRoutes.push({
+            method: method,
+            url: url,
+            version: options.version ? options.version : ""
+        })
+
     return this;
 }
 
@@ -598,4 +609,16 @@ function defaultRoute(req, res) {
     res.statusCode = 404
     res.end()
 }
+
+Anumargak.prototype.printRoutes = function(){
+
+
+    Object.entries(listOfRoutes.methods).forEach(entry => {
+        var key = entry[0];
+        var value = entry[1];
+        console.log(key + "")
+        console.log(value)
+    })
+}
+
 module.exports = Anumargak;
