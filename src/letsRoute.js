@@ -70,7 +70,8 @@ Anumargak.prototype.on = function (method, url, options, fn, extraData) {
         throw Error("Invalid method argument. String or array is expected.");
     }
     
-    listOfMethods[method]
+    // Save the list method, url and version to be printed
+    listOfMethods[method] = {};
     listOfRoutes.push({
             method: method,
             url: url,
@@ -612,13 +613,49 @@ function defaultRoute(req, res) {
 
 Anumargak.prototype.printRoutes = function(){
 
+   process.stdout.write("\nLIST OF Methods Used\n"+
+                           "--------------------\n\n");
 
-    Object.entries(listOfRoutes.methods).forEach(entry => {
-        var key = entry[0];
-        var value = entry[1];
-        console.log(key + "")
-        console.log(value)
-    })
+   console.log( Object.keys(listOfMethods))
+
+   process.stdout.write("\nLIST OF STATIC AND DYNAMIC ROUTES\n"+
+                          "---------------------------------\n\n");
+
+   // variable which we will print to the screen
+   var stringToPrint;
+   
+   // Iterate through each of the methods 
+   Object.keys(listOfMethods).forEach(function(key, index){
+
+       process.stdout.write(key + "\n { \n");
+
+       // Iterate through all of the objects which hold the route url's and versions 
+       for(var i=0; i < listOfRoutes.length; i++){
+           
+           // reset the string we use to print to the screen
+           stringToPrint = "";
+           
+           // We will print this object if its method matches the listOfMethods object 
+           if ( key == listOfRoutes [ i ] . method)
+           {
+               // start constructing the string which will be printed out
+               stringToPrint =  "     " + listOfRoutes [ i ] .url;
+             
+               // check to see if there is a version and if there is append it to the string
+              if ( listOfRoutes [i] .version)
+              {
+               stringToPrint += " { with version => " + listOfRoutes [i] .version + " }\n";
+              } else { 
+                  // no version, append a newline to the string
+                  stringToPrint += "\n" 
+               }
+               // print out route to screen
+               process.stdout.write(stringToPrint);
+           }
+       }
+       // newlines for the next method
+       process.stdout.write(" }\n\n");
+    });
 }
 
 module.exports = Anumargak;
